@@ -1,144 +1,161 @@
+// src/pages/NewItem.js
 import React, { useState } from "react";
 import { client } from "../api/client";
 import { useNavigate } from "react-router-dom";
 
 export default function NewItem() {
-  // --- 商品情報 ---
   const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
-
-  // --- AI説明生成 ---
-  const [loadingAI, setLoadingAI] = useState(false);
-
-  // --- 画像データ & プレビュー ---
-  const [file1, setFile1] = useState(null);
-  const [file2, setFile2] = useState(null);
-  const [file3, setFile3] = useState(null);
-
-  const [preview1, setPreview1] = useState("");
-  const [preview2, setPreview2] = useState("");
-  const [preview3, setPreview3] = useState("");
+  const [description, setDescription] = useState("");
+  const [images, setImages] = useState([]);
+  const [aiLoading, setAiLoading] = useState(false);
 
   const navigate = useNavigate();
 
-  // --- AI説明生成機能 ---
-  const generateDescription = async () => {
-    if (!title) return alert("先に商品名を入力してください");
-
-    try {
-      setLoadingAI(true);
-      const res = await client.post("/ai/describe", { title });
-      setDescription(res.data.description || "");
-    } catch (e) {
-      alert("AI説明生成に失敗しました");
-    } finally {
-      setLoadingAI(false);
-    }
-  };
-
-  // --- 画像セット + プレビュー生成 ---
-  const handleFileChange = (e, setFile, setPreview) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    setFile(file);
-    setPreview(URL.createObjectURL(file));
-  };
-
-  // --- 商品登録処理（multipart） ---
-  const handleSubmit = async () => {
-    if (!title || !description || !price) {
-      alert("全ての項目を入力してください");
+  // =========================
+  //  AI説明生成
+  // =========================
+  const generateAI = async () => {
+    if (!title) {
+      alert("先にタイトルを入力してください");
       return;
     }
 
-    const form = new FormData();
-    form.append("title", title);
-    form.append("description", description);
-    form.append("price", price);
-
-    if (file1) form.append("file1", file1);
-    if (file2) form.append("file2", file2);
-    if (file3) form.append("file3", file3);
-
+    setAiLoading(true);
     try {
-      await client.post("/items", form, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-
-      alert("商品を登録しました！");
-      navigate("/items");
+      const res = await client.post("/ai/describe", { title });
+      setDescription(res.data.description || "");
     } catch (err) {
       console.error(err);
-      alert("商品登録に失敗しました");
+      alert("AI説明生成に失敗しました");
     }
+    setAiLoading(false);
+  };
+
+  // =========================
+  //  商品登録
+  // =========================
+  const handleSubmit = async () => {
+    const form = new FormData();
+    form.append("title", title);
+    form.append("price", price);
+    form.append("description", description);
+
+    images.forEach((file) => form.append("images", file));
+
+    await client.post("/items", form, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+
+    navigate("/items");
   };
 
   return (
-    <div style={{ padding: 20 }}>
-      <h2>商品投稿</h2>
+    <div
+      style={{
+        background: "#fff",
+        padding: "28px",
+        borderRadius: "14px",
+        boxShadow: "0 6px 16px rgba(0,0,0,0.08)",
+        maxWidth: "680px",
+        margin: "0 auto",
+        fontFamily: "'Georgia', serif",
+      }}
+    >
+      <h2 style={{ marginBottom: "20px", fontWeight: 700 }}>
+        商品を出品する
+      </h2>
 
-      {/* --- 商品名 --- */}
+      {/* タイトル */}
+      <label style={{ fontWeight: 600 }}>タイトル</label>
       <input
-        type="text"
-        placeholder="商品名"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
-        style={{ width: "100%", marginBottom: 10 }}
+        style={{
+          width: "100%",
+          marginTop: "4px",
+          padding: "10px",
+          borderRadius: "8px",
+          border: "1px solid #ccc",
+          marginBottom: "12px",
+        }}
       />
 
-      {/* --- AI説明生成ボタン --- */}
-      <button onClick={generateDescription} disabled={loadingAI}>
-        {loadingAI ? "AI生成中..." : "AIで説明生成"}
+      {/* AI説明生成ボタン */}
+      <button
+        onClick={generateAI}
+        disabled={aiLoading}
+        style={{
+          padding: "8px 14px",
+          background: "#f4e3d8",
+          borderRadius: "8px",
+          border: "1px solid #d0b49f",
+          cursor: "pointer",
+          fontSize: "14px",
+          marginBottom: "16px",
+        }}
+      >
+        {aiLoading ? "生成中..." : "AIで説明文を作成する"}
       </button>
 
-      <br /><br />
-
-      {/* --- 説明文 --- */}
-      <textarea
-        placeholder="説明文"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        style={{ width: "100%", height: 120 }}
-      />
-
-      <br /><br />
-
-      {/* --- 価格 --- */}
+      {/* 価格 */}
+      <label style={{ fontWeight: 600, display: "block", marginTop: "16px" }}>
+        価格
+      </label>
       <input
         type="number"
-        placeholder="価格"
         value={price}
         onChange={(e) => setPrice(e.target.value)}
-        style={{ width: "100%", marginBottom: 20 }}
+        style={{
+          width: "100%",
+          padding: "10px",
+          borderRadius: "8px",
+          border: "1px solid #ccc",
+        }}
       />
 
-      {/* --- 画像アップロード --- */}
-      <h3>画像アップロード（最大3枚）</h3>
+      {/* 説明文 */}
+      <label style={{ fontWeight: 600, marginTop: "16px", display: "block" }}>
+        説明文
+      </label>
+      <textarea
+        rows={5}
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+        style={{
+          width: "100%",
+          padding: "12px",
+          borderRadius: "8px",
+          border: "1px solid #ccc",
+          marginBottom: "16px",
+        }}
+      />
 
-      <div>
-        <input type="file" accept="image/*"
-          onChange={(e) => handleFileChange(e, setFile1, setPreview1)} />
-        {preview1 && <img src={preview1} width={150} alt="preview1" />}
-      </div>
+      {/* 画像 */}
+      <label style={{ fontWeight: 600 }}>画像（最大3枚）</label>
+      <input
+        type="file"
+        multiple
+        accept="image/*"
+        onChange={(e) => setImages([...e.target.files].slice(0, 3))}
+      />
 
-      <div>
-        <input type="file" accept="image/*"
-          onChange={(e) => handleFileChange(e, setFile2, setPreview2)} />
-        {preview2 && <img src={preview2} width={150} alt="preview2" />}
-      </div>
-
-      <div>
-        <input type="file" accept="image/*"
-          onChange={(e) => handleFileChange(e, setFile3, setPreview3)} />
-        {preview3 && <img src={preview3} width={150} alt="preview3" />}
-      </div>
-
-      <br />
-
-      <button onClick={handleSubmit} style={{ marginTop: 20 }}>
-        商品を登録する
+      {/* 出品ボタン */}
+      <button
+        onClick={handleSubmit}
+        style={{
+          marginTop: "20px",
+          width: "100%",
+          padding: "12px",
+          background: "#d97757",
+          color: "#fff",
+          borderRadius: "8px",
+          border: "none",
+          fontSize: "16px",
+          cursor: "pointer",
+        }}
+      >
+        出品する
       </button>
     </div>
   );

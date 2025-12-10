@@ -3,166 +3,160 @@ import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { client } from "../api/client";
 
+const BASE = "https://hackathon-backend-563488838141.us-central1.run.app";
+
 export default function ItemDetail() {
   const { id } = useParams();
   const [item, setItem] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [me, setMe] = useState(null);
   const navigate = useNavigate();
 
-  // ★ Cloud Run のベースURL（一覧と同じ）
-  const BASE = "https://hackathon-backend-563488838141.us-central1.run.app";
-
+  // 商品取得
   useEffect(() => {
-    client
-      .get("/items/list")
-      .then((res) => {
-        const items = res.data || [];
-        const found = items.find((i) => String(i.id) === id);
-        setItem(found || null);
-      })
-      .catch((err) => console.error(err))
-      .finally(() => setLoading(false));
+    client.get("/items/list").then((res) => {
+      const list = res.data || [];
+      const found = list.find((it) => String(it.id) === String(id));
+      setItem(found || null);
+    });
   }, [id]);
 
+  // 自分のプロフィール
+  useEffect(() => {
+    client.get("/users/me").then((res) => setMe(res.data));
+  }, []);
+
+  if (!item) return <p style={{ padding: 20 }}>読み込み中...</p>;
+
+  const sellerId = item.user_id;
+  const img1 = item.image1_url ? `${BASE}${item.image1_url}` : "/noimage.png";
+  const img2 = item.image2_url ? `${BASE}${item.image2_url}` : null;
+  const img3 = item.image3_url ? `${BASE}${item.image3_url}` : null;
+
+  // ⭐ 購入処理（最小限の追加）
   const handlePurchase = async () => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      alert("購入するにはログインが必要です");
-      navigate("/login");
-      return;
-    }
-
     try {
-      await client.post("/purchase", { item_id: Number(id) });
-      alert("購入が完了しました！");
-      navigate("/items");
-    } catch (err) {
-      console.error(err);
-      alert("購入に失敗しました");
-    }
-  };
+      await client.post("/purchase", {
+        item_id: Number(item.id),   // ★ここだけ変更
+      });
 
-  if (loading) return <p>読み込み中...</p>;
-  if (!item) return <p>商品が見つかりませんでした。</p>;
+    alert("購入が完了しました！");
+    navigate("/items");
+  } catch (err) {
+    console.error(err);
+    alert("購入に失敗しました");
+  }
+};
 
-  // ★ 画像URLをまとめる
-  const images = [];
-  if (item.image1_url) images.push(BASE + item.image1_url);
-  if (item.image2_url) images.push(BASE + item.image2_url);
-  if (item.image3_url) images.push(BASE + item.image3_url);
-
-  // -------------------------------
-  // ここからUI
-  // -------------------------------
 
   return (
-    <div>
+    <div
+      style={{
+        maxWidth: "900px",
+        margin: "0 auto",
+        padding: "20px",
+        fontFamily: "'Georgia', serif",
+      }}
+    >
       <div
         style={{
-          background: "#fff",
-          borderRadius: "16px",
-          padding: "20px 22px",
-          boxShadow: "0 10px 26px rgba(0,0,0,0.08)",
           display: "grid",
-          gridTemplateColumns: "minmax(0, 1.3fr) minmax(0, 1.5fr)",
-          gap: "20px",
+          gridTemplateColumns: "1fr 1fr",
+          gap: "40px",
+          alignItems: "start",
+          background: "#fff",
+          padding: "30px",
+          borderRadius: "16px",
+          boxShadow: "0 8px 25px rgba(0,0,0,0.05)",
         }}
       >
-        {/* ------- 画像エリア ------- */}
-        <div
-          style={{
-            display: "flex",
-            gap: "12px",
-            overflowX: "auto",
-            borderRadius: "14px",
-            background: "#f5eee9",
-            padding: "10px",
-          }}
-        >
-          {images.length > 0 ? (
-            images.map((src, idx) => (
+        <div>
+          <img
+            src={img1}
+            alt=""
+            style={{
+              width: "100%",
+              borderRadius: "12px",
+              marginBottom: "14px",
+              objectFit: "cover",
+            }}
+          />
+
+          <div style={{ display: "flex", gap: "10px" }}>
+            {img2 && (
               <img
-                key={idx}
-                src={src}
-                alt={`item-${idx}`}
-                style={{
-                  width: "300px",
-                  height: "220px",
-                  objectFit: "cover",
-                  borderRadius: "12px",
-                }}
+                src={img2}
+                alt=""
+                style={{ width: "30%", borderRadius: "8px" }}
               />
-            ))
-          ) : (
-            <span style={{ fontSize: "13px", color: "#a28a7a" }}>No Image</span>
-          )}
+            )}
+            {img3 && (
+              <img
+                src={img3}
+                alt=""
+                style={{ width: "30%", borderRadius: "8px" }}
+              />
+            )}
+          </div>
         </div>
 
-        {/* ------- 詳細エリア ------- */}
         <div>
-          <h1 style={{ fontSize: "22px", fontWeight: 700, marginBottom: "8px" }}>
-            {item.title}
-          </h1>
+          <h1 style={{ fontSize: "28px", fontWeight: 700 }}>{item.title}</h1>
 
-          <div style={{ fontSize: "20px", fontWeight: 700, color: "#d97757" }}>
-            {item.price} 円
-          </div>
+          <p style={{ marginTop: "10px", fontSize: "18px", color: "#444" }}>
+            {item.description || "説明文がありません"}
+          </p>
 
-          <div
-            style={{
-              fontSize: "14px",
-              fontWeight: 600,
-              color: "#7a6c65",
-              marginTop: "14px",
-              marginBottom: "4px",
-            }}
-          >
-            商品の説明
-          </div>
+          <p style={{ marginTop: "16px", fontSize: "22px", fontWeight: 700 }}>
+            ¥{item.price}
+          </p>
 
-          <div
-            style={{
-              fontSize: "15px",
-              lineHeight: 1.7,
-              color: "#4b4b4b",
-              whiteSpace: "pre-wrap",
-            }}
-          >
-            {item.description}
-          </div>
+          {/* DMボタン（変更なし） */}
+          {me && me.id !== sellerId && (
+            <button
+              onClick={() => navigate(`/messages/${item.id}/${sellerId}`)}
+              style={{
+                marginTop: "20px",
+                width: "100%",
+                padding: "12px",
+                borderRadius: "999px",
+                background: "#d97757",
+                color: "#fff",
+                fontSize: "16px",
+                border: "none",
+                cursor: "pointer",
+              }}
+            >
+              出品者にメッセージする
+            </button>
+          )}
 
-          <button
-            style={{
-              marginTop: "20px",
-              borderRadius: "999px",
-              border: "none",
-              padding: "14px 20px",
-              fontSize: "16px",
-              fontWeight: 700,
-              background: "#d97757",
-              color: "#fff",
-              cursor: "pointer",
-              width: "100%",
-              letterSpacing: "0.03em",
-            }}
-            onClick={handlePurchase}
-          >
-            この商品を購入する
-          </button>
+          {/* 購入ボタン（ここだけ修正） */}
+          {me && me.id !== sellerId && (
+            <button
+              onClick={handlePurchase}
+              style={{
+                marginTop: "12px",
+                width: "100%",
+                padding: "12px",
+                borderRadius: "999px",
+                background: "#3f3a38",
+                color: "#fff",
+                fontSize: "16px",
+                border: "none",
+                cursor: "pointer",
+              }}
+            >
+              購入する
+            </button>
+          )}
         </div>
       </div>
 
       <Link
         to="/items"
-        style={{
-          display: "inline-block",
-          marginTop: "18px",
-          fontSize: "14px",
-          color: "#7a6c65",
-          textDecoration: "none",
-        }}
+        style={{ display: "block", marginTop: "20px", color: "#d97757" }}
       >
-        ← 商品一覧に戻る
+        ← 商品一覧へ戻る
       </Link>
     </div>
   );

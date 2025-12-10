@@ -1,129 +1,162 @@
 // src/App.js
-import React, { useEffect, useState } from "react";
-import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from "react-router-dom";
+import React from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Link,
+  useNavigate,
+  useLocation,
+} from "react-router-dom";
 
 import NewItem from "./pages/NewItem";
 import ItemsList from "./pages/ItemsList";
 import ItemDetail from "./pages/ItemDetail";
 import SignUp from "./pages/SignUp";
 import Login from "./pages/Login";
+import Profile from "./pages/Profile";
+import MessageRoom from "./pages/MessageRoom";
+import EditItem from "./pages/EditItem";
 
-// Etsy っぽい共通スタイル
-const appStyles = {
-  root: {
-    minHeight: "100vh",
-    background: "#f5eee9", // ベージュ系
-    fontFamily: "'system-ui', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-    color: "#3f3a38",
-  },
-  container: {
-    maxWidth: "960px",
-    margin: "0 auto",
-    padding: "20px 16px 40px",
-  },
-  nav: {
-    background: "#fff",
-    borderRadius: "999px",
-    padding: "10px 18px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    boxShadow: "0 8px 20px rgba(0,0,0,0.06)",
-    margin: "16px auto 24px",
-    maxWidth: "960px",
-    position: "sticky",
-    top: "8px",
-    zIndex: 10,
-  },
-  navLeft: {
-    display: "flex",
-    alignItems: "center",
-    gap: "14px",
-  },
-  brand: {
-    fontSize: "20px",
-    fontWeight: 700,
-    letterSpacing: "0.05em",
-  },
-  brandAccent: {
-    color: "#d97757", // 柔らかいオレンジ
-  },
-  navLinks: {
-    display: "flex",
-    alignItems: "center",
-    gap: "14px",
-    fontSize: "14px",
-  },
-  navLink: {
-    textDecoration: "none",
-    color: "#4b4b4b",
-    padding: "6px 10px",
-    borderRadius: "999px",
-    transition: "background 0.15s ease",
-  },
-  navLinkActive: {
-    background: "#f3e1d5",
-    color: "#3f3a38",
-  },
-  navRight: {
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
-    fontSize: "13px",
-  },
-  buttonGhost: {
-    border: "1px solid #d0b49f",
-    borderRadius: "999px",
-    padding: "6px 12px",
-    background: "#fff",
-    cursor: "pointer",
-    fontSize: "13px",
-  },
+import { client } from "./api/client";
+import EditProfile from "./pages/EditProfile";
+<Route path="/profile/edit" element={<EditProfile />} />
+
+
+// --------------------
+// Etsy 調のテーマカラー
+// --------------------
+const colors = {
+  background: "#f5eee9",
+  text: "#3f3a38",
+  navBg: "#ffffff",
+  navShadow: "0 8px 20px rgba(0,0,0,0.06)",
+  pillHover: "#f4e3d8",
+  accent: "#d97757",
+};
+
+const navLinkStyle = {
+  textDecoration: "none",
+  color: colors.text,
+  padding: "6px 14px",
+  borderRadius: "999px",
+  transition: "0.2s",
+};
+
+const buttonStyleGhost = {
+  border: "1px solid #d0b49f",
+  borderRadius: "999px",
+  padding: "6px 14px",
+  background: "#fff",
+  cursor: "pointer",
+  fontSize: "14px",
 };
 
 function NavBar() {
-  const [isAuthed, setIsAuthed] = useState(false);
+  const location = useLocation();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    setIsAuthed(!!localStorage.getItem("token"));
-  }, []);
+  const [isAuthed, setIsAuthed] = React.useState(false);
+  const [avatarURL, setAvatarURL] = React.useState(null);
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    setIsAuthed(false);
-    navigate("/login");
-  };
+  React.useEffect(() => {
+    const token = localStorage.getItem("token");
+    setIsAuthed(!!token);
+
+    if (token) {
+      client
+        .get("/users/me")
+        .then((res) => setAvatarURL(res.data.avatarURL))
+        .catch(() => {});
+    } else {
+      setAvatarURL(null);
+    }
+  }, [location.pathname]);
 
   return (
-    <nav style={appStyles.nav}>
-      <div style={appStyles.navLeft}>
-        <div style={appStyles.brand}>
-          Flea<span style={appStyles.brandAccent}>Nest</span>
+    <nav
+      style={{
+        background: colors.navBg,
+        borderRadius: "999px",
+        padding: "14px 26px",
+        margin: "20px auto 32px",
+        maxWidth: "980px",
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        boxShadow: colors.navShadow,
+        position: "sticky",
+        top: "12px",
+        zIndex: 10,
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: "18px" }}>
+        <div
+          onClick={() => navigate("/items")}
+          style={{
+            fontSize: "24px",
+            fontWeight: 800,
+            letterSpacing: "0.04em",
+            cursor: "pointer",
+          }}
+        >
+          Flea<span style={{ color: colors.accent }}>Nest</span>
         </div>
-        <div style={appStyles.navLinks}>
-          <Link to="/items" style={appStyles.navLink}>
+
+        <div style={{ display: "flex", gap: "16px", fontSize: "15px" }}>
+          <Link to="/items" style={navLinkStyle}>
             商品一覧
           </Link>
-          <Link to="/new" style={appStyles.navLink}>
+          <Link to="/new" style={navLinkStyle}>
             出品する
           </Link>
         </div>
       </div>
-      <div style={appStyles.navRight}>
+
+      <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
         {isAuthed ? (
           <>
-            <span>ログイン中</span>
-            <button style={appStyles.buttonGhost} onClick={handleLogout}>
+            <div
+              onClick={() => navigate("/profile")}
+              style={{
+                cursor: "pointer",
+                width: 38,
+                height: 38,
+                borderRadius: "50%",
+                overflow: "hidden",
+                border: "2px solid #eee",
+              }}
+            >
+              <img
+                src={avatarURL}
+                alt="avatar"
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                }}
+              />
+            </div>
+
+            <button
+              style={buttonStyleGhost}
+              onClick={() => {
+                localStorage.removeItem("token");
+                navigate("/login");
+              }}
+            >
               ログアウト
             </button>
           </>
         ) : (
           <>
-            <Link to="/signup" style={appStyles.navLink}>
+            <Link to="/signup" style={navLinkStyle}>
               新規登録
             </Link>
-            <Link to="/login" style={{ ...appStyles.navLink, ...appStyles.navLinkActive }}>
+            <Link
+              to="/login"
+              style={{ ...navLinkStyle, background: colors.pillHover }}
+            >
               ログイン
             </Link>
           </>
@@ -133,19 +166,41 @@ function NavBar() {
   );
 }
 
-function App() {
+export default function App() {
   return (
-    <div style={appStyles.root}>
+    <div
+      style={{
+        minHeight: "100vh",
+        background: colors.background,
+        color: colors.text,
+        fontFamily: "'Georgia', 'Times New Roman', serif",
+      }}
+    >
       <Router>
         <NavBar />
-        <main style={appStyles.container}>
+        <main
+          style={{
+            maxWidth: "960px",
+            margin: "0 auto",
+            padding: "20px 16px 60px",
+          }}
+        >
           <Routes>
-            <Route path="/new" element={<NewItem />} />
             <Route path="/items" element={<ItemsList />} />
             <Route path="/items/:id" element={<ItemDetail />} />
+            <Route path="/new" element={<NewItem />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/login" element={<Login />} />
-            {/* デフォルトを商品一覧に */}
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/items/edit/:id" element={<EditItem />} />
+
+            {/* DM */}
+            <Route
+              path="/messages/:itemId/:partnerId"
+              element={<MessageRoom />}
+            />
+
+            {/* default */}
             <Route path="/" element={<ItemsList />} />
           </Routes>
         </main>
@@ -153,5 +208,3 @@ function App() {
     </div>
   );
 }
-
-export default App;
