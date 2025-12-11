@@ -14,29 +14,40 @@ export default function Profile() {
 
   // ① プロフィール取得
   useEffect(() => {
-    client.get("/users/me").then((res) => setMe(res.data));
+    client.get("/users/me")
+      .then((res) => setMe(res.data))
+      .catch((err) => console.error(err));
   }, []);
 
   // ② 自分の出品一覧
   useEffect(() => {
     if (!me) return;
 
-    client.get("/items/list").then((res) => {
-      const items = res.data.filter((it) => it.user_id === me.id);
-      setMyItems(items);
-    });
+    client.get("/items/list")
+      .then((res) => {
+        // nullガード: 配列じゃなければ空配列にする
+        const data = res.data || [];
+        const items = data.filter((it) => String(it.user_id) === String(me.id));
+        setMyItems(items);
+      })
+      .catch((err) => console.error(err));
   }, [me]);
 
-  // ③ DM一覧（正しいAPI：/messages/rooms）
+  // ③ DM一覧
   useEffect(() => {
     if (!me) return;
 
     async function loadDM() {
-      const res = await client.get("/messages/rooms");
-      setMyDMs(res.data);
+      try {
+        const res = await client.get("/messages/rooms");
+        // 🔥 ここ重要: APIが null を返しても空配列 [] に変換してセットする
+        setMyDMs(res.data || []);
+      } catch (err) {
+        console.error(err);
+        setMyDMs([]); // エラー時も空配列へ
+      }
     }
-
-    loadDM().catch(() => {});
+    loadDM();
   }, [me]);
 
   if (!me) return <div>読み込み中...</div>;
@@ -50,7 +61,9 @@ export default function Profile() {
 
       {/* ---- 出品一覧 ---- */}
       <h3 style={{ marginTop: "30px" }}>出品中の商品</h3>
-      {myItems.length === 0 && <p>まだ出品がありません。</p>}
+      
+      {/* 🔥 修正1: データがnullでも落ちないようにチェック */}
+      {(!myItems || myItems.length === 0) && <p>まだ出品がありません。</p>}
 
       <div
         style={{
@@ -60,7 +73,8 @@ export default function Profile() {
           marginTop: "12px",
         }}
       >
-        {myItems.map((item) => (
+        {/* 🔥 修正2: データがnullでも落ちないように ( || [] ) を追加 */}
+        {(myItems || []).map((item) => (
           <div
             key={item.id}
             style={{
@@ -79,6 +93,7 @@ export default function Profile() {
                 objectFit: "cover",
                 borderRadius: "8px",
               }}
+              onError={(e) => e.target.src = "/noimage.png"} // 画像エラー対策も追加
             />
             <p style={{ fontWeight: "600", marginTop: "10px" }}>
               {item.title}
@@ -106,9 +121,11 @@ export default function Profile() {
       {/* ---- DM一覧 ---- */}
       <h3 style={{ marginTop: "40px" }}>DM（取引メッセージ）</h3>
 
-      {myDMs.length === 0 && <p>まだ DM はありません。</p>}
+      {/* 🔥 修正3: ここもnullガードを追加 */}
+      {(!myDMs || myDMs.length === 0) && <p>まだ DM はありません。</p>}
 
-      {myDMs.map((dm) => (
+      {/* 🔥 修正4: ここも ( || [] ) で囲む */}
+      {(myDMs || []).map((dm) => (
         <div
           key={`${dm.item_id}-${dm.partner_id}`}
           style={{
