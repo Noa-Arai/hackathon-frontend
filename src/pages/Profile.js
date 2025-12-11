@@ -25,7 +25,6 @@ export default function Profile() {
 
     client.get("/items/list")
       .then((res) => {
-        // nullガード: 配列じゃなければ空配列にする
         const data = res.data || [];
         const items = data.filter((it) => String(it.user_id) === String(me.id));
         setMyItems(items);
@@ -40,11 +39,10 @@ export default function Profile() {
     async function loadDM() {
       try {
         const res = await client.get("/messages/rooms");
-        // 🔥 ここ重要: APIが null を返しても空配列 [] に変換してセットする
         setMyDMs(res.data || []);
       } catch (err) {
         console.error(err);
-        setMyDMs([]); // エラー時も空配列へ
+        setMyDMs([]); 
       }
     }
     loadDM();
@@ -54,15 +52,34 @@ export default function Profile() {
 
   return (
     <div style={{ padding: "20px" }}>
-      {/* ---- プロフィール ---- */}
-      <h2>{me.name}</h2>
+      {/* ---- プロフィール (ここを修正しました！) ---- */}
+      <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "10px" }}>
+        <h2 style={{ margin: 0 }}>{me.name}</h2>
+        
+        {/* 🔥 追加: 編集画面へ飛ぶボタン */}
+        <button
+          onClick={() => navigate("/profile/edit")}
+          style={{
+            padding: "8px 16px",
+            fontSize: "13px",
+            background: "#eee", // 少しグレーにして目立ちすぎないように
+            color: "#333",
+            border: "none",
+            borderRadius: "6px",
+            cursor: "pointer",
+            fontWeight: "bold"
+          }}
+        >
+          プロフィールを編集
+        </button>
+      </div>
+
       <p>{me.bio}</p>
       <p>Birthday: {me.birthday}</p>
 
       {/* ---- 出品一覧 ---- */}
       <h3 style={{ marginTop: "30px" }}>出品中の商品</h3>
       
-      {/* 🔥 修正1: データがnullでも落ちないようにチェック */}
       {(!myItems || myItems.length === 0) && <p>まだ出品がありません。</p>}
 
       <div
@@ -73,7 +90,6 @@ export default function Profile() {
           marginTop: "12px",
         }}
       >
-        {/* 🔥 修正2: データがnullでも落ちないように ( || [] ) を追加 */}
         {(myItems || []).map((item) => (
           <div
             key={item.id}
@@ -93,7 +109,7 @@ export default function Profile() {
                 objectFit: "cover",
                 borderRadius: "8px",
               }}
-              onError={(e) => e.target.src = "/noimage.png"} // 画像エラー対策も追加
+              onError={(e) => e.target.src = "/noimage.png"}
             />
             <p style={{ fontWeight: "600", marginTop: "10px" }}>
               {item.title}
@@ -121,10 +137,8 @@ export default function Profile() {
       {/* ---- DM一覧 ---- */}
       <h3 style={{ marginTop: "40px" }}>DM（取引メッセージ）</h3>
 
-      {/* 🔥 修正3: ここもnullガードを追加 */}
       {(!myDMs || myDMs.length === 0) && <p>まだ DM はありません。</p>}
 
-      {/* 🔥 修正4: ここも ( || [] ) で囲む */}
       {(myDMs || []).map((dm) => (
         <div
           key={`${dm.item_id}-${dm.partner_id}`}
@@ -149,7 +163,6 @@ export default function Profile() {
           </div>
           <div style={{ color: "#555", marginTop: 4 }}>{dm.last_message || "メッセージなし"}</div>
 
-          {/* 未読バッジ */}
           {dm.unread_count > 0 && (
             <div
               style={{

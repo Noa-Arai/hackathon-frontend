@@ -20,7 +20,7 @@ import EditItem from "./pages/EditItem";
 
 import { client } from "./api/client";
 import EditProfile from "./pages/EditProfile";
-<Route path="/profile/edit" element={<EditProfile />} />
+
 
 
 // --------------------
@@ -193,6 +193,7 @@ export default function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/items/edit/:id" element={<EditItem />} />
+            <Route path="/profile/edit" element={<EditProfile />} />
 
             {/* DM */}
             <Route
