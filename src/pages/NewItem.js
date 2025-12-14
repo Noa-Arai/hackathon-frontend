@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { client } from "../api/client";
 import { useNavigate } from "react-router-dom";
+import { theme } from "../App";
 
 export default function NewItem() {
   const [title, setTitle] = useState("");
@@ -9,153 +10,53 @@ export default function NewItem() {
   const [description, setDescription] = useState("");
   const [images, setImages] = useState([]);
   const [aiLoading, setAiLoading] = useState(false);
-
   const navigate = useNavigate();
 
-  // =========================
-  //  AI説明生成
-  // =========================
   const generateAI = async () => {
-    if (!title) {
-      alert("先にタイトルを入力してください");
-      return;
-    }
-
+    if (!title) return alert("タイトルを入力してください");
     setAiLoading(true);
     try {
       const res = await client.post("/ai/describe", { title });
       setDescription(res.data.description || "");
-    } catch (err) {
-      console.error(err);
-      alert("AI説明生成に失敗しました");
-    }
+    } catch (err) { console.error(err); }
     setAiLoading(false);
   };
 
-  // =========================
-  //  商品登録
-  // =========================
   const handleSubmit = async () => {
     const form = new FormData();
     form.append("title", title);
     form.append("price", price);
     form.append("description", description);
-
     images.forEach((file) => form.append("images", file));
-
-    await client.post("/items", form, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
-
+    await client.post("/items", form, { headers: { "Content-Type": "multipart/form-data" } });
     navigate("/items");
   };
 
+  const inputStyle = { width: "100%", padding: "12px", borderRadius: theme.radius, border: `1px solid ${theme.colors.border}`, marginBottom: "20px", background: "#fff" };
+  const labelStyle = { display: "block", fontSize: "13px", fontWeight: "bold", marginBottom: "8px", color: theme.colors.textLight };
+
   return (
-    <div
-      style={{
-        background: "#fff",
-        padding: "28px",
-        borderRadius: "14px",
-        boxShadow: "0 6px 16px rgba(0,0,0,0.08)",
-        maxWidth: "680px",
-        margin: "0 auto",
-        fontFamily: "'Georgia', serif",
-      }}
-    >
-      <h2 style={{ marginBottom: "20px", fontWeight: 700 }}>
-        商品を出品する
-      </h2>
+    <div style={{ maxWidth: "600px", margin: "0 auto", background: "#fff", padding: "40px", borderRadius: theme.radius, boxShadow: theme.colors.shadow }}>
+      <h2 style={{ fontFamily: theme.fonts.serif, marginBottom: "30px", fontSize: "24px", borderBottom:`1px solid ${theme.colors.border}`, paddingBottom:15 }}>Listing Item</h2>
 
-      {/* タイトル */}
-      <label style={{ fontWeight: 600 }}>タイトル</label>
-      <input
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        style={{
-          width: "100%",
-          marginTop: "4px",
-          padding: "10px",
-          borderRadius: "8px",
-          border: "1px solid #ccc",
-          marginBottom: "12px",
-        }}
-      />
+      <label style={labelStyle}>TITLE</label>
+      <input value={title} onChange={(e) => setTitle(e.target.value)} style={inputStyle} placeholder="商品名" />
 
-      {/* AI説明生成ボタン */}
-      <button
-        onClick={generateAI}
-        disabled={aiLoading}
-        style={{
-          padding: "8px 14px",
-          background: "#f4e3d8",
-          borderRadius: "8px",
-          border: "1px solid #d0b49f",
-          cursor: "pointer",
-          fontSize: "14px",
-          marginBottom: "16px",
-        }}
-      >
-        {aiLoading ? "生成中..." : "AIで説明文を作成する"}
+      <button onClick={generateAI} disabled={aiLoading} style={{ marginBottom: "20px", padding: "8px 16px", background: "#f0f0f0", border: "none", borderRadius: theme.radius, fontSize: "12px", cursor: "pointer", color: theme.colors.text }}>
+        {aiLoading ? "GENERATING..." : "✨ AI AUTO DESCRIBE"}
       </button>
 
-      {/* 価格 */}
-      <label style={{ fontWeight: 600, display: "block", marginTop: "16px" }}>
-        価格
-      </label>
-      <input
-        type="number"
-        value={price}
-        onChange={(e) => setPrice(e.target.value)}
-        style={{
-          width: "100%",
-          padding: "10px",
-          borderRadius: "8px",
-          border: "1px solid #ccc",
-        }}
-      />
+      <label style={labelStyle}>PRICE (¥)</label>
+      <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} style={inputStyle} />
 
-      {/* 説明文 */}
-      <label style={{ fontWeight: 600, marginTop: "16px", display: "block" }}>
-        説明文
-      </label>
-      <textarea
-        rows={5}
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        style={{
-          width: "100%",
-          padding: "12px",
-          borderRadius: "8px",
-          border: "1px solid #ccc",
-          marginBottom: "16px",
-        }}
-      />
+      <label style={labelStyle}>DESCRIPTION</label>
+      <textarea rows={6} value={description} onChange={(e) => setDescription(e.target.value)} style={{ ...inputStyle, fontFamily: theme.fonts.sans }} />
 
-      {/* 画像 */}
-      <label style={{ fontWeight: 600 }}>画像（最大3枚）</label>
-      <input
-        type="file"
-        multiple
-        accept="image/*"
-        onChange={(e) => setImages([...e.target.files].slice(0, 3))}
-      />
+      <label style={labelStyle}>IMAGES (Max 3)</label>
+      <input type="file" multiple accept="image/*" onChange={(e) => setImages([...e.target.files].slice(0, 3))} style={{ marginBottom: "30px" }} />
 
-      {/* 出品ボタン */}
-      <button
-        onClick={handleSubmit}
-        style={{
-          marginTop: "20px",
-          width: "100%",
-          padding: "12px",
-          background: "#d97757",
-          color: "#fff",
-          borderRadius: "8px",
-          border: "none",
-          fontSize: "16px",
-          cursor: "pointer",
-        }}
-      >
-        出品する
+      <button onClick={handleSubmit} style={{ width: "100%", padding: "14px", background: theme.colors.text, color: "#fff", border: "none", borderRadius: theme.radius, fontWeight: "bold", cursor: "pointer", letterSpacing: "0.1em" }}>
+        PUBLISH
       </button>
     </div>
   );

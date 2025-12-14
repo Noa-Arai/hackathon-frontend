@@ -2,8 +2,12 @@
 import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { client } from "../api/client";
+import { theme } from "../App"; // テーマ読み込み
 
-const BASE = "https://hackathon-backend-563488838141.us-central1.run.app";
+const BASE =
+  process.env.NODE_ENV === "production"
+    ? "https://hackathon-backend-563488838141.us-central1.run.app"
+    : "http://localhost:8080";
 
 export default function ItemDetail() {
   const { id } = useParams();
@@ -11,7 +15,6 @@ export default function ItemDetail() {
   const [me, setMe] = useState(null);
   const navigate = useNavigate();
 
-  // 商品取得
   useEffect(() => {
     client.get("/items/list").then((res) => {
       const list = res.data || [];
@@ -20,144 +23,121 @@ export default function ItemDetail() {
     });
   }, [id]);
 
-  // 自分のプロフィール
   useEffect(() => {
-    client.get("/users/me").then((res) => setMe(res.data));
+    client.get("/users/me").then((res) => setMe(res.data)).catch(()=>{});
   }, []);
 
-  if (!item) return <p style={{ padding: 20 }}>読み込み中...</p>;
+  if (!item) return <p style={{ padding: 40, textAlign:"center" }}>Loading...</p>;
 
   const sellerId = item.user_id;
   const img1 = item.image1_url ? `${BASE}${item.image1_url}` : "/noimage.png";
   const img2 = item.image2_url ? `${BASE}${item.image2_url}` : null;
   const img3 = item.image3_url ? `${BASE}${item.image3_url}` : null;
 
-  // ⭐ 購入処理（最小限の追加）
   const handlePurchase = async () => {
     try {
-      await client.post("/purchase", {
-        item_id: Number(item.id),   // ★ここだけ変更
-      });
-
-    alert("購入が完了しました！");
-    navigate("/items");
-  } catch (err) {
-    console.error(err);
-    alert("購入に失敗しました");
-  }
-};
-
+      await client.post("/purchase", { item_id: Number(item.id) });
+      alert("購入手続きが完了しました。");
+      navigate("/items");
+    } catch (err) {
+      console.error(err);
+      alert("購入に失敗しました");
+    }
+  };
 
   return (
-    <div
-      style={{
-        maxWidth: "900px",
-        margin: "0 auto",
-        padding: "20px",
-        fontFamily: "'Georgia', serif",
-      }}
-    >
+    <div style={{ maxWidth: "1000px", margin: "0 auto" }}>
       <div
         style={{
           display: "grid",
           gridTemplateColumns: "1fr 1fr",
-          gap: "40px",
+          gap: "60px",
           alignItems: "start",
-          background: "#fff",
-          padding: "30px",
-          borderRadius: "16px",
-          boxShadow: "0 8px 25px rgba(0,0,0,0.05)",
+          background: theme.colors.secondaryBg,
+          padding: "40px",
+          borderRadius: theme.radius,
+          boxShadow: theme.colors.shadow,
         }}
       >
+        {/* 左側：画像 */}
         <div>
-          <img
-            src={img1}
-            alt=""
-            style={{
-              width: "100%",
-              borderRadius: "12px",
-              marginBottom: "14px",
-              objectFit: "cover",
-            }}
-          />
-
+          <div style={{ borderRadius: theme.radius, overflow: "hidden", marginBottom: "16px", boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}>
+            <img src={img1} alt="" style={{ width: "100%", display: "block" }} onError={(e)=>e.target.src="/noimage.png"}/>
+          </div>
           <div style={{ display: "flex", gap: "10px" }}>
-            {img2 && (
-              <img
-                src={img2}
-                alt=""
-                style={{ width: "30%", borderRadius: "8px" }}
-              />
-            )}
-            {img3 && (
-              <img
-                src={img3}
-                alt=""
-                style={{ width: "30%", borderRadius: "8px" }}
-              />
-            )}
+            {img2 && <img src={img2} alt="" style={{ width: "80px", height:"80px", objectFit:"cover", borderRadius: theme.radius, cursor:"pointer" }} />}
+            {img3 && <img src={img3} alt="" style={{ width: "80px", height:"80px", objectFit:"cover", borderRadius: theme.radius, cursor:"pointer" }} />}
           </div>
         </div>
 
+        {/* 右側：情報 */}
         <div>
-          <h1 style={{ fontSize: "28px", fontWeight: 700 }}>{item.title}</h1>
+          <h1 style={{ fontFamily: theme.fonts.serif, fontSize: "32px", marginBottom: "20px", lineHeight: 1.3 }}>
+            {item.title}
+          </h1>
 
-          <p style={{ marginTop: "10px", fontSize: "18px", color: "#444" }}>
-            {item.description || "説明文がありません"}
+          <p style={{ fontSize: "24px", fontWeight: "bold", color: theme.colors.primary, marginBottom: "30px" }}>
+            ¥{item.price.toLocaleString()}
           </p>
 
-          <p style={{ marginTop: "16px", fontSize: "22px", fontWeight: 700 }}>
-            ¥{item.price}
+          <p style={{ lineHeight: 1.8, color: theme.colors.textLight, marginBottom: "40px", whiteSpace: "pre-wrap" }}>
+            {item.description || "No description."}
           </p>
 
-          {/* DMボタン（変更なし） */}
-          {me && me.id !== sellerId && (
-            <button
-              onClick={() => navigate(`/messages/${item.id}/${sellerId}`)}
-              style={{
-                marginTop: "20px",
-                width: "100%",
-                padding: "12px",
-                borderRadius: "999px",
-                background: "#d97757",
-                color: "#fff",
-                fontSize: "16px",
-                border: "none",
-                cursor: "pointer",
-              }}
-            >
-              出品者にメッセージする
-            </button>
-          )}
-
-          {/* 購入ボタン（ここだけ修正） */}
-          {me && me.id !== sellerId && (
-            <button
-              onClick={handlePurchase}
-              style={{
-                marginTop: "12px",
-                width: "100%",
-                padding: "12px",
-                borderRadius: "999px",
-                background: "#3f3a38",
-                color: "#fff",
-                fontSize: "16px",
-                border: "none",
-                cursor: "pointer",
-              }}
-            >
-              購入する
-            </button>
+          {/* アクションボタン */}
+          {me && me.id !== sellerId ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+              <button
+                onClick={handlePurchase}
+                style={{
+                  width: "100%",
+                  padding: "16px",
+                  background: theme.colors.primary, // ゴールド
+                  color: "#fff",
+                  fontSize: "16px",
+                  fontWeight: "bold",
+                  border: "none",
+                  borderRadius: theme.radius,
+                  cursor: "pointer",
+                  letterSpacing: "0.05em",
+                  transition: "background 0.2s"
+                }}
+                onMouseEnter={(e)=>e.target.style.background=theme.colors.primaryHover}
+                onMouseLeave={(e)=>e.target.style.background=theme.colors.primary}
+              >
+                購入手続きへ
+              </button>
+              
+              <button
+                onClick={() => navigate(`/messages/${item.id}/${sellerId}`)}
+                style={{
+                  width: "100%",
+                  padding: "16px",
+                  background: "transparent",
+                  color: theme.colors.text,
+                  fontSize: "14px",
+                  fontWeight: "bold",
+                  border: `1px solid ${theme.colors.border}`,
+                  borderRadius: theme.radius,
+                  cursor: "pointer",
+                }}
+              >
+                出品者に質問する
+              </button>
+            </div>
+          ) : (
+            <div style={{ padding: "20px", background: "#f9f9f9", color: "#999", textAlign: "center", borderRadius: theme.radius }}>
+              {me ? "あなたの商品です" : "購入するにはログインしてください"}
+            </div>
           )}
         </div>
       </div>
 
-      <Link
-        to="/items"
-        style={{ display: "block", marginTop: "20px", color: "#d97757" }}
-      >
-        ← 商品一覧へ戻る
-      </Link>
+      <div style={{ marginTop: "30px" }}>
+        <Link to="/items" style={{ color: theme.colors.textLight, textDecoration: "none", fontSize: "14px" }}>
+          ← Back to List
+        </Link>
+      </div>
     </div>
   );
 }

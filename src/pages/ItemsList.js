@@ -2,12 +2,16 @@
 import React, { useEffect, useState } from "react";
 import { client } from "../api/client";
 import { useNavigate } from "react-router-dom";
+import { theme } from "../App"; // テーマ読み込み
 
 export default function ItemsList() {
   const [items, setItems] = useState([]);
   const navigate = useNavigate();
 
-  const BASE = "https://hackathon-backend-563488838141.us-central1.run.app";
+  const BASE =
+    process.env.NODE_ENV === "production"
+      ? "https://hackathon-backend-563488838141.us-central1.run.app"
+      : "http://localhost:8080";
 
   useEffect(() => {
     client.get("/items/list").then((res) => {
@@ -15,22 +19,25 @@ export default function ItemsList() {
     });
   }, []);
 
-  const getImage = (item) => {
-    if (item.image1_url) return BASE + item.image1_url;
-    if (item.image2_url) return BASE + item.image2_url;
-    if (item.image3_url) return BASE + item.image3_url;
-    return "/noimage.png";
-  };
-
   return (
     <div>
-      <h2 style={{ marginBottom: "20px" }}>人気商品</h2>
+      <h2
+        style={{
+          marginBottom: "30px",
+          fontFamily: theme.fonts.serif, // セリフ体で見出し
+          fontSize: "24px",
+          borderBottom: `1px solid ${theme.colors.border}`,
+          paddingBottom: "10px",
+        }}
+      >
+        NEW ARRIVALS
+      </h2>
 
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
-          gap: "24px",
+          gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
+          gap: "30px",
         }}
       >
         {items.map((item) => (
@@ -38,26 +45,66 @@ export default function ItemsList() {
             key={item.id}
             onClick={() => navigate(`/items/${item.id}`)}
             style={{
-              background: "#fff",
-              padding: "14px",
-              borderRadius: "12px",
-              boxShadow: "0 4px 10px rgba(0,0,0,0.06)",
+              background: theme.colors.secondaryBg,
+              borderRadius: theme.radius,
+              boxShadow: theme.colors.shadow,
               cursor: "pointer",
+              transition: "transform 0.3s, box-shadow 0.3s",
+              overflow: "hidden",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = "translateY(-4px)";
+              e.currentTarget.style.boxShadow = theme.colors.shadowHover;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow = theme.colors.shadow;
             }}
           >
-            <img
-              src={getImage(item)}
-              alt={item.title}
-              style={{
-                width: "100%",
-                height: "180px",
-                objectFit: "cover",
-                borderRadius: "8px",
-              }}
-            />
+            {/* 画像部分 */}
+            <div style={{ position: "relative", paddingTop: "75%", background: "#f0f0f0" }}>
+              <img
+                src={item.image1_url ? `${BASE}${item.image1_url}` : "/noimage.png"}
+                alt={item.title}
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                }}
+                onError={(e) => (e.target.src = "/noimage.png")}
+              />
+            </div>
 
-            <p style={{ marginTop: "12px", fontWeight: "600" }}>{item.title}</p>
-            <p style={{ fontSize: "16px", fontWeight: "700" }}>¥{item.price}</p>
+            {/* テキスト部分 */}
+            <div style={{ padding: "20px" }}>
+              <p
+                style={{
+                  margin: "0 0 8px",
+                  fontWeight: "500",
+                  fontSize: "15px",
+                  color: theme.colors.text,
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
+                {item.title}
+              </p>
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: "16px",
+                  fontWeight: "bold",
+                  color: theme.colors.primary, // ゴールド価格
+                  fontFamily: theme.fonts.sans,
+                }}
+              >
+                ¥{item.price.toLocaleString()}
+              </p>
+            </div>
           </div>
         ))}
       </div>

@@ -22,25 +22,25 @@ import EditItem from "./pages/EditItem";
 import { client } from "./api/client";
 
 // --------------------
-// Etsy風 洗練されたテーマ設定
+// Design 3: Stylish & Monotone (Gold Accent)
 // --------------------
 const theme = {
   colors: {
-    background: "#FDFAF5", // より明るく温かいオフホワイト
-    text: "#222222", // 濃いチャコールグレーで引き締める
-    textLight: "#595959", // サブテキスト用
-    primary: "#F1641E", // Etsy風の落ち着いたオレンジ
-    primaryHover: "#D15619",
-    secondaryBg: "#FFFFFF", // カードなどの背景はクリーンな白
-    border: "#E0E0E0", // 薄いグレーの境界線
-    shadow: "0 4px 12px rgba(0,0,0,0.08)", // 柔らかく広がる影
-    shadowHover: "0 6px 16px rgba(0,0,0,0.12)",
+    background: "#FAFAFA",   // 洗練された非常に薄いグレー
+    text: "#111111",         // 漆黒（読みやすさ重視）
+    textLight: "#888888",    // クールなグレー
+    primary: "#C0A062",      // 上品なマットゴールド
+    primaryHover: "#A88B52", // ホバー時の濃いゴールド
+    secondaryBg: "#FFFFFF",  // 純白
+    border: "#E5E5E5",       // 極薄いボーダー
+    shadow: "0 2px 15px rgba(0,0,0,0.04)", // 繊細な影
+    shadowHover: "0 10px 30px rgba(0,0,0,0.08)",
   },
   fonts: {
-    serif: "'Georgia', 'Times New Roman', serif", // 見出し用
-    sans: "'Helvetica Neue', Helvetica, Arial, sans-serif", // 本文・ボタン用
+    serif: "'Times New Roman', 'YuMincho', serif", // クラシックなセリフ体
+    sans: "'Helvetica Neue', Arial, sans-serif",   // モダンなサンセリフ
   },
-  radius: "12px", // 少し大きめの角丸
+  radius: "4px", // 角丸を小さくしてシャープな印象に
 };
 
 // スタイル定義
@@ -48,44 +48,46 @@ const styles = {
   navLink: {
     textDecoration: "none",
     color: theme.colors.text,
-    padding: "8px 16px",
-    borderRadius: "999px",
+    padding: "8px 0", // ボタン風ではなく、テキストリンク風に
+    margin: "0 12px",
     transition: "all 0.2s ease",
     fontFamily: theme.fonts.sans,
     fontWeight: 500,
     fontSize: "14px",
+    position: "relative",
+    letterSpacing: "0.05em",
   },
+  // 下線アニメーション用のスタイル
   navLinkActive: {
-    background: "#F0EAE2", // アクティブ時の淡い背景
     color: theme.colors.primary,
+    borderBottom: `2px solid ${theme.colors.primary}`,
   },
   buttonPrimary: {
-    background: theme.colors.primary,
+    background: theme.colors.text, // 基本は黒ボタンで引き締める
     color: "#fff",
     border: "none",
-    borderRadius: "999px",
-    padding: "10px 20px",
+    borderRadius: theme.radius,
+    padding: "10px 24px",
     cursor: "pointer",
     fontFamily: theme.fonts.sans,
     fontWeight: "bold",
-    fontSize: "14px",
-    transition: "background 0.2s",
+    fontSize: "13px",
+    letterSpacing: "0.05em",
+    transition: "background 0.3s",
   },
   buttonGhost: {
     background: "transparent",
     color: theme.colors.text,
-    border: `2px solid ${theme.colors.border}`,
-    borderRadius: "999px",
+    border: `1px solid ${theme.colors.border}`,
+    borderRadius: theme.radius,
     padding: "8px 18px",
     cursor: "pointer",
     fontFamily: theme.fonts.sans,
-    fontWeight: "bold",
-    fontSize: "14px",
+    fontSize: "13px",
     transition: "all 0.2s",
   },
 };
 
-// カスタムNavLinkコンポーネント（アクティブ状態のスタイル適用のため）
 function NavLink({ to, children, ...props }) {
   const location = useLocation();
   const isActive = location.pathname === to;
@@ -126,57 +128,55 @@ function NavBar() {
     <nav
       style={{
         background: theme.colors.secondaryBg,
-        padding: "16px 32px",
+        padding: "0 40px",
+        height: "70px",
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
-        boxShadow: theme.colors.shadow,
+        borderBottom: `1px solid ${theme.colors.border}`,
         position: "sticky",
         top: 0,
         zIndex: 100,
-        borderBottom: `1px solid ${theme.colors.border}`,
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
-        {/* ロゴ */}
+      <div style={{ display: "flex", alignItems: "center", gap: "40px" }}>
+        {/* ロゴ：セリフ体でゴールドに */}
         <div
           onClick={() => navigate("/items")}
           style={{
-            fontSize: "28px",
-            fontWeight: 900,
-            letterSpacing: "-0.02em",
+            fontSize: "26px",
+            fontWeight: "bold",
+            letterSpacing: "0.05em",
             cursor: "pointer",
             fontFamily: theme.fonts.serif,
-            color: theme.colors.primary,
+            color: theme.colors.primary, // ゴールド
+            textTransform: "uppercase",
           }}
         >
           FleaNest
         </div>
 
         {/* ナビゲーションリンク */}
-        <div style={{ display: "flex", gap: "8px" }}>
-          <NavLink to="/items">商品一覧</NavLink>
-          <NavLink to="/new">出品する</NavLink>
+        <div style={{ display: "flex" }}>
+          <NavLink to="/items">ITEM LIST</NavLink>
+          <NavLink to="/new">SELL</NavLink>
         </div>
       </div>
 
       {/* 右側メニュー */}
-      <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
         {isAuthed ? (
           <>
             <div
               onClick={() => navigate("/profile")}
               style={{
                 cursor: "pointer",
-                width: 42,
-                height: 42,
+                width: 36,
+                height: 36,
                 borderRadius: "50%",
                 overflow: "hidden",
-                border: `2px solid ${theme.colors.border}`,
-                transition: "border-color 0.2s",
+                border: `1px solid ${theme.colors.border}`,
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.borderColor = theme.colors.primary)}
-              onMouseLeave={(e) => (e.currentTarget.style.borderColor = theme.colors.border)}
             >
               <img
                 src={avatarURL || "/noimage.png"}
@@ -193,26 +193,24 @@ function NavBar() {
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.borderColor = theme.colors.text;
-                e.currentTarget.style.background = "#F7F7F7";
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.borderColor = theme.colors.border;
-                e.currentTarget.style.background = "transparent";
               }}
             >
-              ログアウト
+              LOGOUT
             </button>
           </>
         ) : (
           <>
-            <NavLink to="/login">ログイン</NavLink>
+            <NavLink to="/login">LOGIN</NavLink>
             <button
-              style={styles.buttonPrimary}
+              style={{...styles.buttonPrimary, background: theme.colors.primary}} // 登録ボタンはゴールドに
               onClick={() => navigate("/signup")}
               onMouseEnter={(e) => (e.currentTarget.style.background = theme.colors.primaryHover)}
               onMouseLeave={(e) => (e.currentTarget.style.background = theme.colors.primary)}
             >
-              新規登録
+              SIGN UP
             </button>
           </>
         )}
@@ -228,14 +226,14 @@ export default function App() {
         minHeight: "100vh",
         background: theme.colors.background,
         color: theme.colors.text,
-        fontFamily: theme.fonts.sans, // 基本はサンセリフ
+        fontFamily: theme.fonts.sans,
       }}
     >
       <Router>
         <NavBar />
         <main
           style={{
-            maxWidth: "1100px", // 少し幅を広げてゆったりと
+            maxWidth: "1200px",
             margin: "0 auto",
             padding: "40px 24px 80px",
           }}
@@ -257,5 +255,5 @@ export default function App() {
     </div>
   );
 }
-// Themeを他のファイルでも使えるようにexport（簡易的）
+// Themeを他のファイルで使うためにexport
 export { theme };

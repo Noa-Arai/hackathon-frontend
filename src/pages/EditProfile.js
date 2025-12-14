@@ -2,228 +2,65 @@
 import React, { useState, useEffect } from "react";
 import { client } from "../api/client";
 import { useNavigate } from "react-router-dom";
+import { theme } from "../App";
 
-const BASE = "https://hackathon-backend-563488838141.us-central1.run.app";
+const BASE_URL = process.env.NODE_ENV === "production" ? "https://hackathon-backend-563488838141.us-central1.run.app" : "http://localhost:8080";
 
 export default function EditProfile() {
   const navigate = useNavigate();
-
   const [name, setName] = useState("");
   const [bio, setBio] = useState("");
   const [birthday, setBirthday] = useState("");
-
   const [avatarPreview, setAvatarPreview] = useState(null);
   const [avatarFile, setAvatarFile] = useState(null);
+  const token = localStorage.getItem("token");
 
-  // ================================
-  // 初期データ読込
-  // ================================
   useEffect(() => {
-    async function loadProfile() {
-      const res = await client.get("/users/me");
-      setName(res.data.name);
-      setBio(res.data.bio);
-      setBirthday(res.data.birthday);
-      setAvatarPreview(res.data.avatarURL);
-    }
-    loadProfile();
-  }, []);
+    if(!token) return;
+    client.get("/users/me", { headers: { Authorization: `Bearer ${token}` } }).then((res) => {
+      setName(res.data.name); setBio(res.data.bio); setBirthday(res.data.birthday);
+      if(res.data.avatarURL) setAvatarPreview(`${BASE_URL}${res.data.avatarURL}`);
+    });
+  }, [token]);
 
-  // ================================
-  // プロフィール保存（テキスト）
-  // ================================
-  async function saveProfile() {
-    try {
-      await client.post("/users/me/update", {
-        name,
-        bio,
-        birthday,
-      });
+  const saveProfile = async () => {
+    await client.post("/users/me/update", { name, bio, birthday }, { headers: { Authorization: `Bearer ${token}` } });
+    navigate("/profile");
+  };
 
-      alert("プロフィールを更新しました！");
-      navigate("/profile");
-    } catch (err) {
-      console.error(err);
-      alert("プロフィール更新に失敗しました。");
-    }
-  }
+  const saveAvatar = async () => {
+    if (!avatarFile) return;
+    const form = new FormData(); form.append("avatar", avatarFile);
+    await client.post("/users/me/avatar", form, { headers: { "Content-Type": "multipart/form-data", Authorization: `Bearer ${token}` } });
+    navigate("/profile");
+  };
 
-  // ================================
-  // アバター保存
-  // ================================
-  async function saveAvatar() {
-    if (!avatarFile) {
-      alert("画像を選択してください");
-      return;
-    }
+  const inputStyle = { width: "100%", padding: "12px", borderRadius: theme.radius, border: `1px solid ${theme.colors.border}`, marginBottom: "20px" };
+  const labelStyle = { display: "block", fontSize: "13px", fontWeight: "bold", marginBottom: "8px", color: theme.colors.textLight };
 
-    const form = new FormData();
-    form.append("avatar", avatarFile);
-
-    try {
-      await client.post("/users/me/avatar", form, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-
-      alert("アイコンを更新しました！");
-      navigate("/profile");
-    } catch (e) {
-      console.error(e);
-      alert("アイコンの更新に失敗しました。");
-    }
-  }
-
-  if (!name) return <div style={{ padding: 20 }}>読み込み中...</div>;
-
-  // ================================
-  // UI（Etsy風カード）
-  // ================================
   return (
-    <div
-      style={{
-        maxWidth: "720px",
-        margin: "0 auto",
-        padding: "30px 18px",
-        fontFamily: "'Georgia', serif",
-      }}
-    >
-      <h2 style={{ fontWeight: 800, marginBottom: 20 }}>プロフィール編集</h2>
+    <div style={{ maxWidth: "600px", margin: "0 auto", padding: "40px", background: "#fff", borderRadius: theme.radius, boxShadow: theme.colors.shadow }}>
+      <h2 style={{ fontFamily: theme.fonts.serif, marginBottom: "30px" }}>Edit Profile</h2>
 
-      <div
-        style={{
-          background: "#fff",
-          padding: "26px",
-          borderRadius: "20px",
-          boxShadow: "0 8px 25px rgba(0,0,0,0.06)",
-        }}
-      >
-        {/* ======== アイコン編集 ======== */}
-        <div style={{ textAlign: "center", marginBottom: 30 }}>
-          <img
-            src={avatarPreview || "/noimage.png"}
-            alt="avatar"
-            style={{
-              width: 120,
-              height: 120,
-              borderRadius: "50%",
-              objectFit: "cover",
-              border: "3px solid #eee",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-            }}
-          />
-
-          <div style={{ marginTop: 12 }}>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => {
-                const file = e.target.files[0];
-                if (file) {
-                  setAvatarFile(file);
-                  setAvatarPreview(URL.createObjectURL(file));
-                }
-              }}
-            />
-          </div>
-
-          <button
-            onClick={saveAvatar}
-            style={{
-              marginTop: 10,
-              background: "#d97757",
-              color: "#fff",
-              padding: "8px 16px",
-              border: "none",
-              borderRadius: "999px",
-              cursor: "pointer",
-            }}
-          >
-            アイコンを更新
-          </button>
+      <div style={{ textAlign: "center", marginBottom: "30px" }}>
+        <img src={avatarPreview || "/noimage.png"} alt="" style={{ width: 100, height: 100, borderRadius: "50%", objectFit: "cover", border: "1px solid #eee" }} onError={(e)=>e.target.src="/noimage.png"} />
+        <div style={{ marginTop: 10 }}>
+            <input type="file" onChange={(e)=>{ const f=e.target.files[0]; if(f){ setAvatarFile(f); setAvatarPreview(URL.createObjectURL(f)); }}} />
+            <button onClick={saveAvatar} style={{ marginLeft: 10, padding: "6px 12px", background: theme.colors.primary, color: "#fff", border: "none", borderRadius: theme.radius, cursor: "pointer", fontSize:"12px" }}>Update Icon</button>
         </div>
-
-        {/* ======== 名前 ======== */}
-        <div style={{ marginBottom: 20 }}>
-          <label style={{ fontWeight: 600 }}>名前</label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            style={{
-              width: "100%",
-              padding: "10px",
-              borderRadius: "8px",
-              border: "1px solid #ddd",
-              marginTop: 6,
-            }}
-          />
-        </div>
-
-        {/* ======== Bio ======== */}
-        <div style={{ marginBottom: 20 }}>
-          <label style={{ fontWeight: 600 }}>自己紹介</label>
-          <textarea
-            value={bio}
-            onChange={(e) => setBio(e.target.value)}
-            rows={4}
-            style={{
-              width: "100%",
-              padding: "10px",
-              borderRadius: "8px",
-              border: "1px solid #ddd",
-              marginTop: 6,
-            }}
-          />
-        </div>
-
-        {/* ======== 誕生日 ======== */}
-        <div style={{ marginBottom: 20 }}>
-          <label style={{ fontWeight: 600 }}>誕生日</label>
-          <input
-            type="date"
-            value={birthday || ""}
-            onChange={(e) => setBirthday(e.target.value)}
-            style={{
-              width: "100%",
-              padding: "10px",
-              borderRadius: "8px",
-              border: "1px solid #ddd",
-              marginTop: 6,
-            }}
-          />
-        </div>
-
-        {/* ======== 保存ボタン ======== */}
-        <button
-          onClick={saveProfile}
-          style={{
-            width: "100%",
-            padding: "12px",
-            background: "#3f3a38",
-            color: "#fff",
-            borderRadius: "999px",
-            border: "none",
-            cursor: "pointer",
-            fontSize: 15,
-            fontWeight: 600,
-          }}
-        >
-          プロフィールを保存
-        </button>
       </div>
 
-      <button
-        onClick={() => navigate("/profile")}
-        style={{
-          marginTop: 18,
-          background: "transparent",
-          border: "none",
-          color: "#d97757",
-          cursor: "pointer",
-          fontSize: 14,
-        }}
-      >
-        ← マイページに戻る
+      <label style={labelStyle}>NAME</label>
+      <input value={name} onChange={(e) => setName(e.target.value)} style={inputStyle} />
+
+      <label style={labelStyle}>BIO</label>
+      <textarea rows={4} value={bio} onChange={(e) => setBio(e.target.value)} style={inputStyle} />
+
+      <label style={labelStyle}>BIRTHDAY</label>
+      <input type="date" value={birthday || ""} onChange={(e) => setBirthday(e.target.value)} style={inputStyle} />
+
+      <button onClick={saveProfile} style={{ width: "100%", padding: "14px", background: theme.colors.text, color: "#fff", border: "none", borderRadius: theme.radius, fontWeight: "bold", cursor: "pointer" }}>
+        SAVE PROFILE
       </button>
     </div>
   );
