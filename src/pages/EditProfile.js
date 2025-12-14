@@ -44,21 +44,26 @@ export default function EditProfile() {
 
 // src/pages/EditProfile.js の saveAvatar 関数だけこれに置き換えてください
 
+  // src/pages/EditProfile.js 内の saveAvatar 関数
+
   const saveAvatar = async () => {
     if (!avatar.file) return alert("画像を選択してください");
     try {
       const formData = new FormData();
+      // ⚠️ バックエンドのGoコードで、受取変数が "avatar" という名前になっているか確認が必要です
+      // もし "image" なら、ここを "image" に変える必要があります
       formData.append("avatar", avatar.file);
+
+      // 👇 修正: headers から "Content-Type" を削除しました！
+      // これにより、ブラウザが自動的に正しい boundary を付けてくれます
       await client.post("/users/me/avatar", formData, {
-        headers: { "Content-Type": "multipart/form-data", Authorization: `Bearer ${token}` },
+        headers: { 
+          Authorization: `Bearer ${token}` 
+        },
       });
 
       alert("アイコンを更新しました！");
-      
-      // 🔥 修正点: React内の移動ではなく、ブラウザごと再読み込みしてプロフィール画面へ
-      // これでヘッダーもキャッシュもすべてリセットされて最新になります
       window.location.href = "/profile"; 
-
     } catch (err) { 
       console.error(err);
       alert("アイコン更新失敗"); 
