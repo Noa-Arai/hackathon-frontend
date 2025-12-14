@@ -42,6 +42,8 @@ export default function EditProfile() {
     } catch (err) { alert("更新失敗"); }
   };
 
+// src/pages/EditProfile.js の saveAvatar 関数だけこれに置き換えてください
+
   const saveAvatar = async () => {
     if (!avatar.file) return alert("画像を選択してください");
     try {
@@ -50,9 +52,17 @@ export default function EditProfile() {
       await client.post("/users/me/avatar", formData, {
         headers: { "Content-Type": "multipart/form-data", Authorization: `Bearer ${token}` },
       });
-      setImgHash(Date.now()); // 画像更新トリガー
+
       alert("アイコンを更新しました！");
-    } catch (err) { alert("アイコン更新失敗"); }
+      
+      // 🔥 修正点: React内の移動ではなく、ブラウザごと再読み込みしてプロフィール画面へ
+      // これでヘッダーもキャッシュもすべてリセットされて最新になります
+      window.location.href = "/profile"; 
+
+    } catch (err) { 
+      console.error(err);
+      alert("アイコン更新失敗"); 
+    }
   };
 
   // --- 表示用画像URL (キャッシュ対策 & Blob対応) ---
