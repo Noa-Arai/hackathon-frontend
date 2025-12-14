@@ -26,21 +26,21 @@ import { client } from "./api/client";
 // --------------------
 const theme = {
   colors: {
-    background: "#FAFAFA",   // 洗練された非常に薄いグレー
-    text: "#111111",         // 漆黒（読みやすさ重視）
-    textLight: "#888888",    // クールなグレー
-    primary: "#C0A062",      // 上品なマットゴールド
-    primaryHover: "#A88B52", // ホバー時の濃いゴールド
-    secondaryBg: "#FFFFFF",  // 純白
-    border: "#E5E5E5",       // 極薄いボーダー
-    shadow: "0 2px 15px rgba(0,0,0,0.04)", // 繊細な影
+    background: "#FAFAFA",
+    text: "#111111",
+    textLight: "#888888",
+    primary: "#C0A062",
+    primaryHover: "#A88B52",
+    secondaryBg: "#FFFFFF",
+    border: "#E5E5E5",
+    shadow: "0 2px 15px rgba(0,0,0,0.04)",
     shadowHover: "0 10px 30px rgba(0,0,0,0.08)",
   },
   fonts: {
-    serif: "'Times New Roman', 'YuMincho', serif", // クラシックなセリフ体
-    sans: "'Helvetica Neue', Arial, sans-serif",   // モダンなサンセリフ
+    serif: "'Times New Roman', 'YuMincho', serif",
+    sans: "'Helvetica Neue', Arial, sans-serif",
   },
-  radius: "4px", // 角丸を小さくしてシャープな印象に
+  radius: "4px",
 };
 
 // スタイル定義
@@ -48,7 +48,7 @@ const styles = {
   navLink: {
     textDecoration: "none",
     color: theme.colors.text,
-    padding: "8px 0", // ボタン風ではなく、テキストリンク風に
+    padding: "8px 0",
     margin: "0 12px",
     transition: "all 0.2s ease",
     fontFamily: theme.fonts.sans,
@@ -57,13 +57,12 @@ const styles = {
     position: "relative",
     letterSpacing: "0.05em",
   },
-  // 下線アニメーション用のスタイル
   navLinkActive: {
     color: theme.colors.primary,
     borderBottom: `2px solid ${theme.colors.primary}`,
   },
   buttonPrimary: {
-    background: theme.colors.text, // 基本は黒ボタンで引き締める
+    background: theme.colors.text,
     color: "#fff",
     border: "none",
     borderRadius: theme.radius,
@@ -111,6 +110,10 @@ function NavBar() {
   const [avatarURL, setAvatarURL] = React.useState(null);
   const location = useLocation();
 
+  const BASE = process.env.NODE_ENV === "production"
+    ? "https://hackathon-backend-563488838141.us-central1.run.app"
+    : "http://localhost:8080";
+
   React.useEffect(() => {
     const token = localStorage.getItem("token");
     setIsAuthed(!!token);
@@ -140,7 +143,6 @@ function NavBar() {
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: "40px" }}>
-        {/* ロゴ：セリフ体でゴールドに */}
         <div
           onClick={() => navigate("/items")}
           style={{
@@ -149,21 +151,19 @@ function NavBar() {
             letterSpacing: "0.05em",
             cursor: "pointer",
             fontFamily: theme.fonts.serif,
-            color: theme.colors.primary, // ゴールド
+            color: theme.colors.primary,
             textTransform: "uppercase",
           }}
         >
           FleaNest
         </div>
 
-        {/* ナビゲーションリンク */}
         <div style={{ display: "flex" }}>
           <NavLink to="/items">ITEM LIST</NavLink>
           <NavLink to="/new">SELL</NavLink>
         </div>
       </div>
 
-      {/* 右側メニュー */}
       <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
         {isAuthed ? (
           <>
@@ -178,11 +178,19 @@ function NavBar() {
                 border: `1px solid ${theme.colors.border}`,
               }}
             >
+              {/* 🔥 無限ループ対策済み画像タグ */}
               <img
-                src={avatarURL || "/noimage.png"}
+                src={avatarURL ? `${BASE}${avatarURL}` : "/noimage.png"}
                 alt="avatar"
                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                onError={(e) => (e.target.src = "/noimage.png")}
+                onError={(e) => {
+                  // すでにnoimage.pngを含んでいるなら、これ以上読み込まない（非表示にする）
+                  if (e.target.src.includes("noimage.png")) {
+                    e.target.style.display = "none";
+                  } else {
+                    e.target.src = "/noimage.png";
+                  }
+                }}
               />
             </div>
             <button
@@ -205,7 +213,7 @@ function NavBar() {
           <>
             <NavLink to="/login">LOGIN</NavLink>
             <button
-              style={{...styles.buttonPrimary, background: theme.colors.primary}} // 登録ボタンはゴールドに
+              style={{...styles.buttonPrimary, background: theme.colors.primary}}
               onClick={() => navigate("/signup")}
               onMouseEnter={(e) => (e.currentTarget.style.background = theme.colors.primaryHover)}
               onMouseLeave={(e) => (e.currentTarget.style.background = theme.colors.primary)}
@@ -255,5 +263,5 @@ export default function App() {
     </div>
   );
 }
-// Themeを他のファイルで使うためにexport
+
 export { theme };

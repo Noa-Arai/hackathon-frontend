@@ -80,7 +80,8 @@ export default function Profile() {
       >
         {/* アバター */}
         <div style={{ position: "relative" }}>
-            <img
+          {/* 🔥 無限ループ対策済み */}
+          <img
             src={me.avatarURL ? `${BASE}${me.avatarURL}` : "/noimage.png"}
             alt={me.name}
             style={{
@@ -90,8 +91,14 @@ export default function Profile() {
                 objectFit: "cover",
                 border: `1px solid ${theme.colors.border}`,
             }}
-            onError={(e) => (e.target.src = "/noimage.png")}
-            />
+            onError={(e) => {
+               if (e.target.src.includes("noimage.png")) {
+                 e.target.style.display = "none";
+               } else {
+                 e.target.src = "/noimage.png";
+               }
+            }}
+          />
         </div>
 
         <div style={{ flex: 1 }}>
@@ -174,11 +181,15 @@ export default function Profile() {
                 onMouseEnter={(e) => e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.08)"}
                 onMouseLeave={(e) => e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.03)"}
                 >
+                {/* 🔥 無限ループ対策済み */}
                 <img
                     src={item.image1_url ? `${BASE}${item.image1_url}` : "/noimage.png"}
                     alt=""
                     style={{ width: "80px", height: "80px", objectFit: "cover", borderRadius: "4px", background: "#f0f0f0" }}
-                    onError={(e) => (e.target.src = "/noimage.png")}
+                    onError={(e) => {
+                      if (e.target.src.includes("noimage.png")) return;
+                      e.target.src = "/noimage.png";
+                    }}
                 />
                 <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
                     <div>
@@ -288,7 +299,6 @@ export default function Profile() {
             ))}
             </div>
         </div>
-
       </div>
     </div>
   );
