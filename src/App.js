@@ -180,7 +180,7 @@ function NavBar() {
             >
               {/* 🔥 無限ループ対策済み画像タグ */}
               <img
-                src={avatarURL ? `${BASE}${avatarURL}` : "/noimage.svg"}
+                src={avatarURL ? `${BASE}${avatarURL}&t=${new Date().getTime()}` : "/noimage.svg"}
                 alt="avatar"
                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
                 onError={(e) => {
