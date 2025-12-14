@@ -73,7 +73,7 @@ export default function EditProfile() {
   // --- 表示用画像URL (キャッシュ対策 & Blob対応) ---
   const displayImage = avatar.preview
     ? (avatar.preview.startsWith("blob:") ? avatar.preview : `${avatar.preview}?t=${imgHash}`)
-    : "/noimage.png";
+    : "/noimage.svg";
 
   // --- スタイル定義 (ここを分離してスッキリ！) ---
   const s = {
@@ -96,7 +96,7 @@ export default function EditProfile() {
       <div style={{ textAlign: "center", marginBottom: "30px" }}>
         <img
           src={displayImage} alt="avatar" style={s.avatarImg}
-          onError={(e) => { if(!e.target.src.includes("noimage")) e.target.src = "/noimage.png"; }}
+          onError={(e) => { if(!e.target.src.includes("noimage")) e.target.src = "/noimage.svg"; }}
         />
         <div>
           <input type="file" accept="image/*" onChange={(e) => {

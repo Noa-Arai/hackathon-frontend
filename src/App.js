@@ -180,15 +180,15 @@ function NavBar() {
             >
               {/* 🔥 無限ループ対策済み画像タグ */}
               <img
-                src={avatarURL ? `${BASE}${avatarURL}` : "/noimage.png"}
+                src={avatarURL ? `${BASE}${avatarURL}` : "/noimage.svg"}
                 alt="avatar"
                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
                 onError={(e) => {
                   // すでにnoimage.pngを含んでいるなら、これ以上読み込まない（非表示にする）
-                  if (e.target.src.includes("noimage.png")) {
+                  if (e.target.src.includes("noimage.svg")) {
                     e.target.style.display = "none";
                   } else {
-                    e.target.src = "/noimage.png";
+                    e.target.src = "/noimage.svg";
                   }
                 }}
               />

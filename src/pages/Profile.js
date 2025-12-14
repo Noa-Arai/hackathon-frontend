@@ -82,7 +82,7 @@ export default function Profile() {
         <div style={{ position: "relative" }}>
           {/* 🔥 無限ループ対策済み */}
           <img
-            src={me.avatarURL ? `${BASE}${me.avatarURL}` : "/noimage.png"}
+            src={me.avatarURL ? `${BASE}${me.avatarURL}` : "/noimage.svg"}
             alt={me.name}
             style={{
                 width: "120px",
@@ -92,10 +92,10 @@ export default function Profile() {
                 border: `1px solid ${theme.colors.border}`,
             }}
             onError={(e) => {
-               if (e.target.src.includes("noimage.png")) {
+               if (e.target.src.includes("noimage.svg")) {
                  e.target.style.display = "none";
                } else {
-                 e.target.src = "/noimage.png";
+                 e.target.src = "/noimage.svg";
                }
             }}
           />
@@ -183,12 +183,12 @@ export default function Profile() {
                 >
                 {/* 🔥 無限ループ対策済み */}
                 <img
-                    src={item.image1_url ? `${BASE}${item.image1_url}` : "/noimage.png"}
+                    src={item.image1_url ? `${BASE}${item.image1_url}` : "/noimage.svg"}
                     alt=""
                     style={{ width: "80px", height: "80px", objectFit: "cover", borderRadius: "4px", background: "#f0f0f0" }}
                     onError={(e) => {
-                      if (e.target.src.includes("noimage.png")) return;
-                      e.target.src = "/noimage.png";
+                      if (e.target.src.includes("noimage.svg")) return;
+                      e.target.src = "/noimage.svg";
                     }}
                 />
                 <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
