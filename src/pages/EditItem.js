@@ -14,6 +14,7 @@ export default function EditItem() {
   const [title, setTitle] = useState("");
   const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
+  const [category, setCategory] = useState("other");
   const [newImages, setNewImages] = useState([]);
 
   useEffect(() => {
@@ -22,6 +23,7 @@ export default function EditItem() {
       const found = (res.data || []).find((it) => String(it.id) === String(id));
       if (found) {
         setItem(found); setTitle(found.title); setPrice(found.price); setDescription(found.description);
+        if (found.category) setCategory(found.category);
       }
     });
   }, [id]);
@@ -32,6 +34,7 @@ export default function EditItem() {
     if (newImages[0]) form.append("image1", newImages[0]);
     if (newImages[1]) form.append("image2", newImages[1]);
     if (newImages[2]) form.append("image3", newImages[2]);
+    form.append("category", category);
     await client.post("/items/update", form, { headers: { "Content-Type": "multipart/form-data" } });
     navigate(`/items/${id}`);
   };
@@ -47,6 +50,15 @@ export default function EditItem() {
       
       <label style={labelStyle}>TITLE</label>
       <input value={title} onChange={(e) => setTitle(e.target.value)} style={inputStyle} />
+
+      <label style={labelStyle}>CATEGORY</label>
+      <select value={category} onChange={(e) => setCategory(e.target.value)} style={inputStyle}>
+        <option value="other">その他</option>
+        <option value="fashion">ファッション</option>
+        <option value="gadget">家電・スマホ</option>
+        <option value="interior">家具・インテリア</option>
+        <option value="hobby">ホビー・ゲーム</option>
+      </select>
       
       <label style={labelStyle}>PRICE</label>
       <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} style={inputStyle} />

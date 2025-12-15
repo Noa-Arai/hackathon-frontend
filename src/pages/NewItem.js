@@ -8,6 +8,7 @@ export default function NewItem() {
   const [title, setTitle] = useState("");
   const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
+  const [category, setCategory] = useState("other");
   const [images, setImages] = useState([]);
   const [aiLoading, setAiLoading] = useState(false);
   const navigate = useNavigate();
@@ -27,6 +28,7 @@ export default function NewItem() {
     form.append("title", title);
     form.append("price", price);
     form.append("description", description);
+    form.append("category", category);
     images.forEach((file) => form.append("images", file));
     await client.post("/items", form, { headers: { "Content-Type": "multipart/form-data" } });
     navigate("/items");
@@ -45,6 +47,19 @@ export default function NewItem() {
       <button onClick={generateAI} disabled={aiLoading} style={{ marginBottom: "20px", padding: "8px 16px", background: "#f0f0f0", border: "none", borderRadius: theme.radius, fontSize: "12px", cursor: "pointer", color: theme.colors.text }}>
         {aiLoading ? "GENERATING..." : "✨ AI AUTO DESCRIBE"}
       </button>
+
+      <label style={labelStyle}>CATEGORY</label>
+      <select 
+        value={category} 
+        onChange={(e) => setCategory(e.target.value)} 
+        style={inputStyle}
+      >
+        <option value="other">その他</option>
+        <option value="fashion">ファッション</option>
+        <option value="gadget">家電・スマホ</option>
+        <option value="interior">家具・インテリア</option>
+        <option value="hobby">ホビー・ゲーム</option>
+      </select>
 
       <label style={labelStyle}>PRICE (¥)</label>
       <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} style={inputStyle} />

@@ -6,6 +6,7 @@ import { theme } from "../App"; // テーマ読み込み
 
 export default function ItemsList() {
   const [items, setItems] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState("all");
   const navigate = useNavigate();
 
   const BASE =
@@ -18,6 +19,11 @@ export default function ItemsList() {
       setItems(res.data || []);
     });
   }, []);
+
+  const filteredItems = items.filter((item) => {
+    if (selectedCategory === "all") return true;
+    return item.category === selectedCategory;
+  });
 
   return (
     <div>
@@ -33,6 +39,35 @@ export default function ItemsList() {
         NEW ARRIVALS
       </h2>
 
+      <div style={{ display: "flex", gap: "10px", marginBottom: "30px", flexWrap: "wrap" }}>
+        {[
+          { id: "all", label: "ALL" },
+          { id: "fashion", label: "👗 Fashion" },
+          { id: "gadget", label: "📱 Gadget" },
+          { id: "interior", label: "🪑 Interior" },
+          { id: "hobby", label: "🎮 Hobby" },
+          { id: "other", label: "📦 Other" },
+        ].map((cat) => (
+          <button
+            key={cat.id}
+            onClick={() => setSelectedCategory(cat.id)}
+            style={{
+              padding: "8px 16px",
+              borderRadius: "20px",
+              border: "none",
+              background: selectedCategory === cat.id ? theme.colors.text : "#eee",
+              color: selectedCategory === cat.id ? "#fff" : "#333",
+              cursor: "pointer",
+              fontWeight: "bold",
+              fontSize: "14px",
+              transition: "all 0.2s"
+            }}
+          >
+            {cat.label}
+          </button>
+        ))}
+      </div>
+
       <div
         style={{
           display: "grid",
@@ -40,7 +75,7 @@ export default function ItemsList() {
           gap: "30px",
         }}
       >
-        {items.map((item) => (
+        {filterItems.map((item) => (
           <div
             key={item.id}
             onClick={() => navigate(`/items/${item.id}`)}
@@ -76,7 +111,22 @@ export default function ItemsList() {
                 }}
                 onError={(e) => (e.target.src = "/noimage.png")}
               />
+              {/* 🔥 5. (おまけ) 画像の上にカテゴリーラベルを乗せる */}
+              <span style={{
+                position: "absolute",
+                bottom: "8px",
+                right: "8px",
+                background: "rgba(0,0,0,0.6)",
+                color: "#fff",
+                fontSize: "10px",
+                padding: "4px 8px",
+                borderRadius: "4px",
+                textTransform: "uppercase"
+               }}>
+                 {item.category || "other"}
+               </span>
             </div>
+
 
             {/* テキスト部分 */}
             <div style={{ padding: "20px" }}>
