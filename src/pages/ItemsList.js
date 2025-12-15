@@ -75,7 +75,7 @@ export default function ItemsList() {
           gap: "30px",
         }}
       >
-        {filterItems.map((item) => (
+        {filteredItems.map((item) => (
           <div
             key={item.id}
             onClick={() => navigate(`/items/${item.id}`)}
