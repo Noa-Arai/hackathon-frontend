@@ -82,7 +82,7 @@ export default function Profile() {
         <div style={{ position: "relative" }}>
           {/* 🔥 無限ループ対策済み */}
           <img
-            src={me.avatarURL ? `${BASE}${me.avatarURL}&t=${new Date().getTime()}` : "/noimage.svg"}
+            src={me.avatar_url ? `${BASE}${me.avatar_url}&t=${new Date().getTime()}` : "/noimage.svg"}
             alt={me.name}
             style={{
                 width: "120px",

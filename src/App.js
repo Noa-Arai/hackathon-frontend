@@ -120,7 +120,7 @@ function NavBar() {
     if (token) {
       client
         .get("/users/me")
-        .then((res) => setAvatarURL(res.data.avatarURL))
+        .then((res) => setAvatarURL(res.data.avatar_url))
         .catch(() => {});
     } else {
       setAvatarURL(null);

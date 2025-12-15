@@ -26,8 +26,8 @@ export default function EditProfile() {
           bio: res.data.bio || "",
           birthday: res.data.birthday || ""
         });
-        if (res.data.avatarURL) {
-          setAvatar((prev) => ({ ...prev, preview: `${BASE_URL}${res.data.avatarURL}` }));
+        if (res.data.avatar_url) {
+          setAvatar((prev) => ({ ...prev, preview: `${BASE_URL}${res.data.avatar_url}` }));
         }
       })
       .catch((err) => console.error(err));
