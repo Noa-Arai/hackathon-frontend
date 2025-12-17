@@ -15,6 +15,7 @@ export default function EditItem() {
   const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("other");
+  const [isLuckyBag, setIsLuckyBag] = useState(false);
   const [newImages, setNewImages] = useState([]);
 
   useEffect(() => {
@@ -24,6 +25,7 @@ export default function EditItem() {
       if (found) {
         setItem(found); setTitle(found.title); setPrice(found.price); setDescription(found.description);
         if (found.category) setCategory(found.category);
+        if (found.is_lucky_bag) setIsLuckyBag(found.is_lucky_bag);
       }
     });
   }, [id]);
@@ -35,6 +37,7 @@ export default function EditItem() {
     if (newImages[1]) form.append("image2", newImages[1]);
     if (newImages[2]) form.append("image3", newImages[2]);
     form.append("category", category);
+    form.append("is_lucky_bag", isLuckyBag);
     await client.post("/items/update", form, { headers: { "Content-Type": "multipart/form-data" } });
     navigate(`/items/${id}`);
   };
@@ -59,6 +62,19 @@ export default function EditItem() {
         <option value="interior">家具・インテリア</option>
         <option value="hobby">ホビー・ゲーム</option>
       </select>
+
+      {/* 🔥 追加: 福袋スイッチ */}
+      <div style={{ margin: "10px 0 20px", padding: "10px", background: "#FFF0F5", border: "1px dashed #FF69B4", borderRadius: "8px" }}>
+        <label style={{ display: "flex", alignItems: "center", cursor: "pointer", fontWeight: "bold", color: "#D63384", fontSize:"14px" }}>
+          <input 
+            type="checkbox" 
+            checked={isLuckyBag} 
+            onChange={(e) => setIsLuckyBag(e.target.checked)} 
+            style={{ marginRight: "10px" }}
+          />
+          🎁 福袋モード (SECRET)
+        </label>
+      </div>
       
       <label style={labelStyle}>PRICE</label>
       <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} style={inputStyle} />

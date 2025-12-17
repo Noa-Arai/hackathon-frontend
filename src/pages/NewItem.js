@@ -9,6 +9,7 @@ export default function NewItem() {
   const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("other");
+  const [isLuckyBag, setIsLuckyBag] = useState(false);
   const [images, setImages] = useState([]);
   const [aiLoading, setAiLoading] = useState(false);
   const navigate = useNavigate();
@@ -29,6 +30,7 @@ export default function NewItem() {
     form.append("price", price);
     form.append("description", description);
     form.append("category", category);
+    form.append("is_lucky_bag", isLuckyBag);
     images.forEach((file) => form.append("images", file));
     await client.post("/items", form, { headers: { "Content-Type": "multipart/form-data" } });
     navigate("/items");
@@ -60,6 +62,25 @@ export default function NewItem() {
         <option value="interior">家具・インテリア</option>
         <option value="hobby">ホビー・ゲーム</option>
       </select>
+
+      {/* 🔥 追加: 福袋スイッチ */}
+      <div style={{ margin: "10px 0 25px", padding: "15px", background: "#FFF0F5", borderRadius: "8px", border: "2px dashed #FF69B4" }}>
+        <label style={{ display: "flex", alignItems: "center", cursor: "pointer", fontWeight: "bold", color: "#D63384" }}>
+          <input 
+            type="checkbox" 
+            checked={isLuckyBag} 
+            onChange={(e) => setIsLuckyBag(e.target.checked)} 
+            style={{ marginRight: "10px", transform: "scale(1.5)" }}
+          />
+          🎁 福袋（ガチャ）モード
+        </label>
+        <p style={{ fontSize: "12px", color: "#666", margin: "5px 0 0 25px" }}>
+          画像にモザイクがかかります。中身を秘密にしてワクワクを届けましょう！
+        </p>
+      </div>
+
+      <label style={labelStyle}>PRICE (¥)</label>
+      <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} style={inputStyle} />
 
       <label style={labelStyle}>PRICE (¥)</label>
       <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} style={inputStyle} />

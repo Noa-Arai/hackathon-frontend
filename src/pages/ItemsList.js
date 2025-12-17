@@ -108,9 +108,23 @@ export default function ItemsList() {
                   width: "100%",
                   height: "100%",
                   objectFit: "cover",
+                  filter: item.is_lucky_bag ? "blur(20px)" : "none",
+                  transform: item.is_lucky_bag ? "scale(1.2)" : "none", // ぼかすと端が白いので拡大
+                  transition: "filter 0.3s"
                 }}
                 onError={(e) => (e.target.src = "/noimage.png")}
               />
+              {item.is_lucky_bag && (
+                <div style={{
+                  position: "absolute", top: 0, left: 0, width: "100%", height: "100%",
+                  display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                  zIndex: 2, color: "#fff", textShadow: "0 2px 4px rgba(0,0,0,0.5)"
+                }}>
+                  <div style={{ fontSize: "40px" }}>🎁</div>
+                  <div style={{ fontWeight: "bold", fontSize: "18px", letterSpacing: "0.1em" }}>SECRET</div>
+                </div>
+              )}
+
               {/* 🔥 5. (おまけ) 画像の上にカテゴリーラベルを乗せる */}
               <span style={{
                 position: "absolute",
@@ -122,9 +136,9 @@ export default function ItemsList() {
                 padding: "4px 8px",
                 borderRadius: "4px",
                 textTransform: "uppercase"
-               }}>
-                 {item.category || "other"}
-               </span>
+              }}>
+                {item.category || "other"}
+              </span>
             </div>
 
 
@@ -141,6 +155,8 @@ export default function ItemsList() {
                   textOverflow: "ellipsis",
                 }}
               >
+                {/* 福袋ならタイトルも隠す演出 */}
+                {item.is_lucky_bag ? "🔒 シークレット商品" : item.title}
                 {item.title}
               </p>
               <p
