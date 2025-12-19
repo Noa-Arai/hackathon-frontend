@@ -1,4 +1,3 @@
-// src/pages/ItemsList.js
 import React, { useEffect, useState } from "react";
 import { client } from "../api/client";
 import { useNavigate } from "react-router-dom";
@@ -22,9 +21,22 @@ export default function ItemsList() {
     });
   }, []);
 
+  // 🔥 修正: ここで「カテゴリー」と「キーワード」の両方を使って絞り込みます
   const filteredItems = items.filter((item) => {
-    if (selectedCategory === "all") return true;
-    return item.category === selectedCategory;
+    // 1. カテゴリ判定
+    const isCategoryMatch = selectedCategory === "all" || item.category === selectedCategory;
+
+    // 2. キーワード判定 (タイトル または 説明文 に含まれているか)
+    // ※ null安全対策: データがなくても空文字として扱うことでクラッシュを防ぐ
+    const title = item.title || "";
+    const desc = item.description || "";
+    
+    const isKeywordMatch = searchKeyword === "" 
+      || title.includes(searchKeyword) 
+      || desc.includes(searchKeyword);
+
+    // 両方の条件を満たすものだけを表示
+    return isCategoryMatch && isKeywordMatch;
   });
 
   return (
@@ -43,6 +55,19 @@ export default function ItemsList() {
 
       {/* AI感情検索 */}
       <EmotionSearch onSearch={(word) => setSearchKeyword(word)} />
+
+      {/* 🔥 追加: 検索中であることがわかるように表示 & リセットボタン */}
+      {searchKeyword && (
+        <div style={{ margin: "-20px 0 20px", padding: "10px", background: "#f0f8ff", borderRadius: "4px", display: "flex", alignItems: "center", gap: "10px" }}>
+          <span>🔍 絞り込み中: <strong>{searchKeyword}</strong></span>
+          <button 
+            onClick={() => setSearchKeyword("")}
+            style={{ padding: "4px 8px", cursor: "pointer", border: "1px solid #ccc", background: "#fff", borderRadius: "4px" }}
+          >
+            × 解除
+          </button>
+        </div>
+      )}
 
       {/* カテゴリーフィルタ */}
       <div style={{ display: "flex", gap: "10px", marginBottom: "30px", flexWrap: "wrap" }}>
@@ -93,7 +118,7 @@ export default function ItemsList() {
               cursor: "pointer",
               transition: "transform 0.3s, box-shadow 0.3s",
               overflow: "hidden",
-              position: "relative" // 配置調整用にrelative推奨
+              position: "relative"
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = "translateY(-4px)";
@@ -116,19 +141,16 @@ export default function ItemsList() {
                   width: "100%",
                   height: "100%",
                   objectFit: "cover",
-                  // 福袋ならぼかす
                   filter: item.is_lucky_bag ? "blur(20px)" : "none",
                   transform: item.is_lucky_bag ? "scale(1.2)" : "none",
                   transition: "filter 0.3s"
                 }}
-                // 🔥 修正: 無限ループ防止 (nullを入れて再発火を防ぐ)
                 onError={(e) => {
                   e.target.onerror = null; 
                   e.target.src = "/noimage.svg";
                 }}
               />
               
-              {/* 福袋用のオーバーレイ */}
               {item.is_lucky_bag && (
                 <div style={{
                   position: "absolute", top: 0, left: 0, width: "100%", height: "100%",
@@ -140,7 +162,6 @@ export default function ItemsList() {
                 </div>
               )}
 
-              {/* カテゴリーラベル */}
               <span style={{
                 position: "absolute",
                 bottom: "8px",
@@ -151,7 +172,7 @@ export default function ItemsList() {
                 padding: "4px 8px",
                 borderRadius: "4px",
                 textTransform: "uppercase",
-                zIndex: 3 // 画像より上に
+                zIndex: 3
               }}>
                 {item.category || "other"}
               </span>
@@ -170,7 +191,6 @@ export default function ItemsList() {
                   textOverflow: "ellipsis",
                 }}
               >
-                {/* 🔥 修正: 重複していた {item.title} を削除しました */}
                 {item.is_lucky_bag ? "🔒 シークレット商品" : item.title}
               </p>
               <p
