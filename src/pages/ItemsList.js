@@ -8,6 +8,7 @@ import EmotionSearch from "../components/EmotionSearch";
 export default function ItemsList() {
   const [items, setItems] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [searchKeyword, setSearchKeyword] = useState("");
   const navigate = useNavigate();
 
   const BASE =
@@ -41,7 +42,7 @@ export default function ItemsList() {
       </h2>
 
       {/* AI感情検索 */}
-      <EmotionSearch />
+      <EmotionSearch onSearch={(word) => setSearchKeyword(word)} />
 
       {/* カテゴリーフィルタ */}
       <div style={{ display: "flex", gap: "10px", marginBottom: "30px", flexWrap: "wrap" }}>
