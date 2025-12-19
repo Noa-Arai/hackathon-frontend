@@ -124,8 +124,27 @@ export default function ItemDetail() {
           </div>
 
           <div style={{ display: "flex", gap: "10px" }}>
-            {img2 && <img src={img2} alt="" style={{ width: "80px", height:"80px", objectFit:"cover", borderRadius: theme.radius, cursor:"pointer", filter: item.is_lucky_bag ? "blur(10px)" : "none" }} />}
-            {img3 && <img src={img3} alt="" style={{ width: "80px", height:"80px", objectFit:"cover", borderRadius: theme.radius, cursor:"pointer", filter: item.is_lucky_bag ? "blur(10px)" : "none" }} />}
+            {/* サブ画像1 */}
+{img2 && (
+  <img 
+    src={img2} 
+    alt="" 
+    style={{ width: "80px", height:"80px", objectFit:"cover", borderRadius: theme.radius, cursor:"pointer", filter: item.is_lucky_bag ? "blur(10px)" : "none" }} 
+    // 🔥 追加: エラーなら非表示にする（これで404問題を視覚的に消す）
+    onError={(e) => e.target.style.display = "none"}
+  />
+)}
+
+{/* サブ画像2 */}
+{img3 && (
+  <img 
+    src={img3} 
+    alt="" 
+    style={{ width: "80px", height:"80px", objectFit:"cover", borderRadius: theme.radius, cursor:"pointer", filter: item.is_lucky_bag ? "blur(10px)" : "none" }} 
+    // 🔥 追加: エラーなら非表示にする
+    onError={(e) => e.target.style.display = "none"}
+  />
+)}
           </div>
         </div>
 
