@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { client } from "../api/client";
 import { useNavigate } from "react-router-dom";
-import { theme } from "../App"; // テーマ読み込み
+import { theme } from "../App"; 
 import EmotionSearch from "../components/EmotionSearch";
 
 export default function ItemsList() {
@@ -31,7 +31,7 @@ export default function ItemsList() {
       <h2
         style={{
           marginBottom: "30px",
-          fontFamily: theme.fonts.serif, // セリフ体で見出し
+          fontFamily: theme.fonts.serif,
           fontSize: "24px",
           borderBottom: `1px solid ${theme.colors.border}`,
           paddingBottom: "10px",
@@ -40,8 +40,10 @@ export default function ItemsList() {
         NEW ARRIVALS
       </h2>
 
+      {/* AI感情検索 */}
       <EmotionSearch />
 
+      {/* カテゴリーフィルタ */}
       <div style={{ display: "flex", gap: "10px", marginBottom: "30px", flexWrap: "wrap" }}>
         {[
           { id: "all", label: "ALL" },
@@ -71,6 +73,7 @@ export default function ItemsList() {
         ))}
       </div>
 
+      {/* 商品リスト */}
       <div
         style={{
           display: "grid",
@@ -89,6 +92,7 @@ export default function ItemsList() {
               cursor: "pointer",
               transition: "transform 0.3s, box-shadow 0.3s",
               overflow: "hidden",
+              position: "relative" // 配置調整用にrelative推奨
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = "translateY(-4px)";
@@ -99,7 +103,7 @@ export default function ItemsList() {
               e.currentTarget.style.boxShadow = theme.colors.shadow;
             }}
           >
-            {/* 画像部分 */}
+            {/* 画像エリア */}
             <div style={{ position: "relative", paddingTop: "75%", background: "#f0f0f0" }}>
               <img
                 src={item.image1_url ? `${BASE}${item.image1_url}` : "/noimage.png"}
@@ -111,12 +115,19 @@ export default function ItemsList() {
                   width: "100%",
                   height: "100%",
                   objectFit: "cover",
+                  // 福袋ならぼかす
                   filter: item.is_lucky_bag ? "blur(20px)" : "none",
-                  transform: item.is_lucky_bag ? "scale(1.2)" : "none", // ぼかすと端が白いので拡大
+                  transform: item.is_lucky_bag ? "scale(1.2)" : "none",
                   transition: "filter 0.3s"
                 }}
-                onError={(e) => (e.target.src = "/noimage.png")}
+                // 🔥 修正: 無限ループ防止 (nullを入れて再発火を防ぐ)
+                onError={(e) => {
+                  e.target.onerror = null; 
+                  e.target.src = "/noimage.png";
+                }}
               />
+              
+              {/* 福袋用のオーバーレイ */}
               {item.is_lucky_bag && (
                 <div style={{
                   position: "absolute", top: 0, left: 0, width: "100%", height: "100%",
@@ -128,7 +139,7 @@ export default function ItemsList() {
                 </div>
               )}
 
-              {/* 🔥 5. (おまけ) 画像の上にカテゴリーラベルを乗せる */}
+              {/* カテゴリーラベル */}
               <span style={{
                 position: "absolute",
                 bottom: "8px",
@@ -138,14 +149,14 @@ export default function ItemsList() {
                 fontSize: "10px",
                 padding: "4px 8px",
                 borderRadius: "4px",
-                textTransform: "uppercase"
+                textTransform: "uppercase",
+                zIndex: 3 // 画像より上に
               }}>
                 {item.category || "other"}
               </span>
             </div>
 
-
-            {/* テキスト部分 */}
+            {/* テキストエリア */}
             <div style={{ padding: "20px" }}>
               <p
                 style={{
@@ -158,16 +169,15 @@ export default function ItemsList() {
                   textOverflow: "ellipsis",
                 }}
               >
-                {/* 福袋ならタイトルも隠す演出 */}
+                {/* 🔥 修正: 重複していた {item.title} を削除しました */}
                 {item.is_lucky_bag ? "🔒 シークレット商品" : item.title}
-                {item.title}
               </p>
               <p
                 style={{
                   margin: 0,
                   fontSize: "16px",
                   fontWeight: "bold",
-                  color: theme.colors.primary, // ゴールド価格
+                  color: theme.colors.primary,
                   fontFamily: theme.fonts.sans,
                 }}
               >
