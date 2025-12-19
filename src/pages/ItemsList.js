@@ -106,7 +106,7 @@ export default function ItemsList() {
             {/* 画像エリア */}
             <div style={{ position: "relative", paddingTop: "75%", background: "#f0f0f0" }}>
               <img
-                src={item.image1_url ? `${BASE}${item.image1_url}` : "/noimage.png"}
+                src={item.image1_url ? `${BASE}${item.image1_url}` : "/noimage.svg"}
                 alt={item.title}
                 style={{
                   position: "absolute",
