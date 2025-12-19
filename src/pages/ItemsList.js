@@ -123,7 +123,7 @@ export default function ItemsList() {
                 // 🔥 修正: 無限ループ防止 (nullを入れて再発火を防ぐ)
                 onError={(e) => {
                   e.target.onerror = null; 
-                  e.target.src = "/noimage.png";
+                  e.target.src = "/noimage.svg";
                 }}
               />
               

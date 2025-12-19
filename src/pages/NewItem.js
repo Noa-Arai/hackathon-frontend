@@ -82,9 +82,6 @@ export default function NewItem() {
       <label style={labelStyle}>PRICE (¥)</label>
       <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} style={inputStyle} />
 
-      <label style={labelStyle}>PRICE (¥)</label>
-      <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} style={inputStyle} />
-
       <label style={labelStyle}>DESCRIPTION</label>
       <textarea rows={6} value={description} onChange={(e) => setDescription(e.target.value)} style={{ ...inputStyle, fontFamily: theme.fonts.sans }} />
 

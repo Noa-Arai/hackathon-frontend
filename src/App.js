@@ -180,16 +180,15 @@ function NavBar() {
             >
               {/* 🔥 無限ループ対策済み画像タグ */}
               <img
-                src={avatarURL ? `${BASE}${avatarURL}&t=${new Date().getTime()}` : "/noimage.svg"}
+              // 修正1: getTime() を削除してURLを固定する
+                src={avatarURL ? `${BASE}${avatarURL}` : "/noimage.svg"}
                 alt="avatar"
                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                
+                // 修正2: 確実に止めるためにこの書き方に統一する
                 onError={(e) => {
-                  // すでにnoimage.pngを含んでいるなら、これ以上読み込まない（非表示にする）
-                  if (e.target.src.includes("noimage.svg")) {
-                    e.target.style.display = "none";
-                  } else {
-                    e.target.src = "/noimage.svg";
-                  }
+                  e.target.onerror = null; // ← これでループを物理的に遮断
+                  e.target.src = "/noimage.svg";
                 }}
               />
             </div>
