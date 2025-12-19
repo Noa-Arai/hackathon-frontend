@@ -1,4 +1,3 @@
-// src/pages/NewItem.js
 import React, { useState } from "react";
 import { client } from "../api/client";
 import { useNavigate } from "react-router-dom";
@@ -10,7 +9,11 @@ export default function NewItem() {
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("other");
   const [isLuckyBag, setIsLuckyBag] = useState(false);
-  const [images, setImages] = useState([]);
+  
+  // 🔥 修正: 配列ではなく、1枚のファイルとプレビュー用URLだけで管理
+  const [imageFile, setImageFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
+  
   const [aiLoading, setAiLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -24,6 +27,15 @@ export default function NewItem() {
     setAiLoading(false);
   };
 
+  // 🔥 画像選択時の処理（プレビュー作成）
+  const handleImageSelect = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImageFile(file);
+      setPreviewUrl(URL.createObjectURL(file));
+    }
+  };
+
   const handleSubmit = async () => {
     const form = new FormData();
     form.append("title", title);
@@ -31,9 +43,12 @@ export default function NewItem() {
     form.append("description", description);
     form.append("category", category);
     form.append("is_lucky_bag", isLuckyBag);
-    images.forEach((file, index) => {
-      form.append(`image${index + 1}`, file);
-    });
+    
+    // 🔥 修正: ループ処理をやめて、シンプルに1枚だけ添付
+    if (imageFile) {
+      form.append("image1", imageFile);
+    }
+
     await client.post("/items", form, { headers: { "Content-Type": "multipart/form-data" } });
     navigate("/items");
   };
@@ -65,7 +80,6 @@ export default function NewItem() {
         <option value="hobby">ホビー・ゲーム</option>
       </select>
 
-      {/* 🔥 追加: 福袋スイッチ */}
       <div style={{ margin: "10px 0 25px", padding: "15px", background: "#FFF0F5", borderRadius: "8px", border: "2px dashed #FF69B4" }}>
         <label style={{ display: "flex", alignItems: "center", cursor: "pointer", fontWeight: "bold", color: "#D63384" }}>
           <input 
@@ -87,8 +101,38 @@ export default function NewItem() {
       <label style={labelStyle}>DESCRIPTION</label>
       <textarea rows={6} value={description} onChange={(e) => setDescription(e.target.value)} style={{ ...inputStyle, fontFamily: theme.fonts.sans }} />
 
-      <label style={labelStyle}>IMAGES (Max 3)</label>
-      <input type="file" multiple accept="image/*" onChange={(e) => setImages([...e.target.files].slice(0, 3))} style={{ marginBottom: "30px" }} />
+      {/* 🔥 修正: 画像選択エリア（プレビュー付き） */}
+      <div style={{ marginBottom: "30px" }}>
+        <label style={labelStyle}>IMAGE</label>
+        
+        {/* プレビュー表示エリア */}
+        <div style={{ 
+          width: "100%", height: "200px", background: "#f9f9f9", 
+          borderRadius: theme.radius, overflow: "hidden", border: `2px dashed ${theme.colors.border}`,
+          display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "10px",
+          position: "relative"
+        }}>
+          {previewUrl ? (
+            <img src={previewUrl} alt="Preview" style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }} />
+          ) : (
+            <span style={{ color: "#aaa", fontSize: "14px" }}>No Image Selected</span>
+          )}
+          
+          {/* 画像選択inputを全面に透明で配置して、どこ押しても反応するようにする小技 */}
+          <input 
+            type="file" 
+            accept="image/*" 
+            onChange={handleImageSelect} 
+            style={{ 
+              position: "absolute", top: 0, left: 0, width: "100%", height: "100%", 
+              opacity: 0, cursor: "pointer" 
+            }} 
+          />
+        </div>
+        <p style={{ fontSize: "12px", color: "#888", textAlign: "center" }}>
+          ↑ Click box to upload image
+        </p>
+      </div>
 
       <button onClick={handleSubmit} style={{ width: "100%", padding: "14px", background: theme.colors.text, color: "#fff", border: "none", borderRadius: theme.radius, fontWeight: "bold", cursor: "pointer", letterSpacing: "0.1em" }}>
         PUBLISH
