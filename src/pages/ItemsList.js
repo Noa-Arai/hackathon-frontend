@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { client } from "../api/client";
 import { useNavigate } from "react-router-dom";
 import { theme } from "../App"; // テーマ読み込み
+import EmotionSearch from "../components/EmotionSearch";
 
 export default function ItemsList() {
   const [items, setItems] = useState([]);
@@ -38,6 +39,8 @@ export default function ItemsList() {
       >
         NEW ARRIVALS
       </h2>
+
+      <EmotionSearch />
 
       <div style={{ display: "flex", gap: "10px", marginBottom: "30px", flexWrap: "wrap" }}>
         {[
