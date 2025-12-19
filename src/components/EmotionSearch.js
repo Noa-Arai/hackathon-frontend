@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { client } from '../api/client'; // あなたのプロジェクトのaxios設定に合わせて
-import { theme } from '../App';         // あなたのテーマ設定に合わせて
+import { client } from '../api/client';
+// themeは使っていなければ削除してもOKですが、デザイン統一するならimport推奨
+// import { theme } from '../App'; 
 
-export default function EmotionSearch() {
+// 🔥 修正1: 親から onSearch を受け取る
+export default function EmotionSearch({ onSearch }) {
   const [emotion, setEmotion] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
@@ -13,6 +15,7 @@ export default function EmotionSearch() {
     setResult(null);
 
     try {
+      // 这里的APIはあなたのバックエンド実装に合わせてください
       const res = await client.get(`/items/search/emotion?emotion=${encodeURIComponent(emotion)}`);
       setResult(res.data);
     } catch (e) {
@@ -23,7 +26,6 @@ export default function EmotionSearch() {
     }
   };
 
-  // エンターキーでも送信できるように
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
       handleSearch();
@@ -70,16 +72,34 @@ export default function EmotionSearch() {
         <div style={{ marginTop: "15px" }}>
           <p style={{ fontSize: "14px", color: "#555" }}>
             🤖 <strong>「{result.emotion}」</strong>なあなたへのおすすめキーワード:
+            <br/>
+            <span style={{fontSize:"10px", color:"#888"}}>※キーワードをクリックして商品を検索</span>
           </p>
           <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginTop: "5px" }}>
             {result.keywords.map((word, i) => (
-              <span key={i} style={{
-                background: "#fff", padding: "6px 12px", 
-                borderRadius: "15px", border: "1px solid #ccc",
-                fontWeight: "bold", color: "#333", boxShadow: "0 2px 2px rgba(0,0,0,0.1)"
-              }}>
+              <button 
+                key={i} 
+                // 🔥 修正2: クリックしたら親の検索機能を動かす
+                onClick={() => onSearch(word)}
+                style={{
+                  background: "#fff", padding: "6px 12px", 
+                  borderRadius: "15px", border: "1px solid #ccc",
+                  fontWeight: "bold", color: "#333", 
+                  boxShadow: "0 2px 2px rgba(0,0,0,0.1)",
+                  cursor: "pointer", // クリックできる感出す
+                  transition: "all 0.2s"
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = "#007bff";
+                  e.target.style.color = "#fff";
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = "#fff";
+                  e.target.style.color = "#333";
+                }}
+              >
                 🔍 {word}
-              </span>
+              </button>
             ))}
           </div>
         </div>
