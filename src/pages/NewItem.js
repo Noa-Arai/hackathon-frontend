@@ -31,7 +31,9 @@ export default function NewItem() {
     form.append("description", description);
     form.append("category", category);
     form.append("is_lucky_bag", isLuckyBag);
-    images.forEach((file) => form.append("images", file));
+    images.forEach((file, index) => {
+      form.append(`image${index + 1}`, file);
+    });
     await client.post("/items", form, { headers: { "Content-Type": "multipart/form-data" } });
     navigate("/items");
   };
